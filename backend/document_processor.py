@@ -57,7 +57,8 @@ class DocumentProcessor:
         self.output_dir.mkdir(exist_ok=True)
         
         # Initialize NLTK components if available
-        if NLTK_AVAILABLE:
+        self.nltk_available = NLTK_AVAILABLE
+        if self.nltk_available:
             try:
                 nltk.download('punkt', quiet=True)
                 nltk.download('stopwords', quiet=True)
@@ -67,7 +68,7 @@ class DocumentProcessor:
                 self.stop_words = set(stopwords.words('english'))
             except Exception as e:
                 logger.warning(f"Could not initialize NLTK components: {e}")
-                NLTK_AVAILABLE = False
+                self.nltk_available = False
         
         # Document type patterns
         self.document_patterns = {
@@ -181,7 +182,6 @@ class DocumentProcessor:
             raise ImportError("PDF processing libraries not available")
         
         try:
-            # Try pdfminer first for better text extraction
             text = extract_text(str(file_path), laparams=LAParams())
             if text.strip():
                 return text
@@ -292,8 +292,7 @@ class DocumentProcessor:
         if not text_content.strip():
             return "No content available for summary."
         
-        # Simple summary based on document type
-        sentences = sent_tokenize(text_content) if NLTK_AVAILABLE else text_content.split('.')
+        sentences = sent_tokenize(text_content) if self.nltk_available else text_content.split('.')
         
         if document_type == 'case_law':
             summary_sentences = sentences[:3]  # First 3 sentences
@@ -318,7 +317,6 @@ class DocumentProcessor:
             'references': []
         }
         
-        # Extract dates
         date_patterns = [
             r'\d{1,2}/\d{1,2}/\d{4}',
             r'\d{4}-\d{2}-\d{2}',
@@ -360,8 +358,7 @@ class DocumentProcessor:
             'paragraphs': len(text_content.split('\n\n')),
             'word_count': len(text_content.split())
         }
-        
-        # Extract headings (lines that are shorter and end with common patterns)
+
         lines = text_content.split('\n')
         for line in lines:
             line = line.strip()
@@ -383,7 +380,6 @@ class DocumentProcessor:
         elif document_type == 'training':
             tags.extend(['training', 'education', 'learning'])
         
-        # Add content-based tags
         text_lower = text_content.lower()
         
         if any(word in text_lower for word in ['confidential', 'secret', 'private']):
@@ -476,22 +472,8 @@ class DocumentProcessor:
         return stats
 
 
-# Example usage and testing
 if __name__ == "__main__":
-    # Initialize processor
     processor = DocumentProcessor()
-    
-    # Example: Process a single document
-    # processed = processor.process_document("path/to/document.pdf")
-    # print(json.dumps(processed, indent=2))
-    
-    # Example: Process a directory
-    # processed_docs = processor.process_directory("path/to/documents/")
-    # print(f"Processed {len(processed_docs)} documents")
-    
-    # Example: Get processing stats
-    # stats = processor.get_processing_stats()
-    # print(json.dumps(stats, indent=2))
     
     print("Document Processor initialized successfully!")
     print("Available methods:")
