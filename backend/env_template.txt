@@ -1,0 +1,14 @@
+# Pinecone Configuration
+PINECONE_API_KEY=pcsk_6ABeLZ_5SUStescF2bKZ1a4oGgKV8hDdF9ZnvEyh4FQxAtcLSQUbCvXH2EFs1WvJgMwdwV
+
+# Optional: Customize Pinecone settings
+PINECONE_INDEX_NAME=legal-documents
+PINECONE_CLOUD=aws
+PINECONE_REGION=us-east-1
+
+# Document Processing Settings
+CHUNK_SIZE=1000
+CHUNK_OVERLAP=200
+
+# Logging
+LOG_LEVEL=INFO

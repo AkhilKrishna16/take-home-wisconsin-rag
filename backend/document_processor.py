@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+"""
+Document Processor for Legal Documents
+
+This module provides comprehensive document processing capabilities for legal documents,
+including text extraction, metadata analysis, and intelligent chunking for RAG systems.
+"""
+
 import os
 import re
 import json
@@ -6,6 +14,10 @@ from typing import Dict, List, Optional, Any, Union
 from pathlib import Path
 from datetime import datetime
 import hashlib
+
+# Import the document chunker and vector database
+from document_chunker import DocumentChunker
+from vector_database import LegalVectorDatabase
 
 # PDF Processing
 try:
@@ -47,14 +59,23 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class DocumentProcessor:
-    """
-    A comprehensive document processor for legal and policy documents.
-    Supports PDF, DOCX, and various text formats.
-    """
     
-    def __init__(self, output_dir: str = "processed_documents"):
+    def __init__(self, output_dir: str = "processed_documents", chunk_size: int = 1000, chunk_overlap: int = 200, use_vector_db: bool = True):
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(exist_ok=True)
+        
+        # Initialize document chunker
+        self.chunker = DocumentChunker(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
+        
+        # Initialize vector database if requested
+        self.vector_db = None
+        if use_vector_db:
+            try:
+                self.vector_db = LegalVectorDatabase()
+                logger.info("Vector database initialized successfully")
+            except Exception as e:
+                logger.warning(f"Could not initialize vector database: {e}")
+                self.vector_db = None
         
         # Initialize NLTK components if available
         self.nltk_available = NLTK_AVAILABLE
@@ -102,16 +123,6 @@ class DocumentProcessor:
         }
     
     def process_document(self, file_path: str, document_type: Optional[str] = None) -> Dict[str, Any]:
-        """
-        Process a document and extract structured information.
-        
-        Args:
-            file_path: Path to the document
-            document_type: Optional document type (case_law, policy, training)
-            
-        Returns:
-            Dictionary containing processed document information
-        """
         file_path = Path(file_path)
         
         if not file_path.exists():
@@ -127,6 +138,9 @@ class DocumentProcessor:
         if not document_type:
             document_type = self._detect_document_type(text_content)
         
+        # Create intelligent chunks
+        chunks = self.chunker.chunk_document(text_content, document_type)
+        
         # Process based on document type
         processed_data = {
             'file_path': str(file_path),
@@ -140,29 +154,43 @@ class DocumentProcessor:
             'summary': self._generate_summary(text_content, document_type),
             'key_entities': self._extract_key_entities(text_content, document_type),
             'structure': self._extract_structure(text_content, document_type),
-            'tags': self._generate_tags(text_content, document_type)
+            'tags': self._generate_tags(text_content, document_type),
+            'chunks': chunks,
+            'chunk_count': len(chunks)
         }
         
         # Save processed document
         self._save_processed_document(processed_data)
         
+        # Index in vector database if available
+        if self.vector_db and chunks:
+            document_id = f"{file_path.stem}_{processed_data['file_hash'][:8]}"
+            success = self.vector_db.index_document_chunks(chunks, document_id)
+            if success:
+                processed_data['vector_db_indexed'] = True
+                processed_data['vector_db_id'] = document_id
+            else:
+                processed_data['vector_db_indexed'] = False
+        
         return processed_data
     
     def _get_file_type(self, file_path: Path) -> str:
-        """Determine the file type based on extension and content."""
         mime_type, _ = mimetypes.guess_type(str(file_path))
         
         if file_path.suffix.lower() == '.pdf':
             return 'pdf'
         elif file_path.suffix.lower() in ['.docx', '.doc']:
             return 'docx'
-        elif file_path.suffix.lower() in ['.txt', '.md']:
+        elif file_path.suffix.lower() in ['.txt', '.md', '.rtf']:
             return 'text'
+        elif file_path.suffix.lower() in ['.csv', '.tsv']:
+            return 'spreadsheet'
+        elif file_path.suffix.lower() in ['.html', '.htm']:
+            return 'html'
         else:
             return 'unknown'
     
     def _extract_text(self, file_path: Path, file_type: str) -> str:
-        """Extract text content from different file types."""
         try:
             if file_type == 'pdf':
                 return self._extract_pdf_text(file_path)
@@ -170,6 +198,10 @@ class DocumentProcessor:
                 return self._extract_docx_text(file_path)
             elif file_type == 'text':
                 return self._extract_text_file(file_path)
+            elif file_type == 'spreadsheet':
+                return self._extract_spreadsheet_text(file_path)
+            elif file_type == 'html':
+                return self._extract_html_text(file_path)
             else:
                 raise ValueError(f"Unsupported file type: {file_type}")
         except Exception as e:
@@ -177,7 +209,6 @@ class DocumentProcessor:
             return ""
     
     def _extract_pdf_text(self, file_path: Path) -> str:
-        """Extract text from PDF files."""
         if not PDF_AVAILABLE:
             raise ImportError("PDF processing libraries not available")
         
@@ -198,7 +229,6 @@ class DocumentProcessor:
             return ""
     
     def _extract_docx_text(self, file_path: Path) -> str:
-        """Extract text from DOCX files."""
         if not DOCX_AVAILABLE:
             raise ImportError("DOCX processing library not available")
         
@@ -222,7 +252,6 @@ class DocumentProcessor:
             return ""
     
     def _extract_text_file(self, file_path: Path) -> str:
-        """Extract text from plain text files."""
         try:
             with open(file_path, 'r', encoding='utf-8') as file:
                 return file.read()
@@ -236,8 +265,48 @@ class DocumentProcessor:
                     continue
             raise ValueError(f"Could not decode file with any encoding: {file_path}")
     
+    def _extract_spreadsheet_text(self, file_path: Path) -> str:
+        try:
+            import csv
+            text = ""
+            with open(file_path, 'r', encoding='utf-8') as file:
+                if file_path.suffix.lower() == '.csv':
+                    reader = csv.reader(file)
+                else:  # .tsv
+                    reader = csv.reader(file, delimiter='\t')
+                
+                for row in reader:
+                    text += ' | '.join(row) + '\n'
+            return text
+        except Exception as e:
+            logger.error(f"Error extracting spreadsheet text: {e}")
+            return ""
+    
+    def _extract_html_text(self, file_path: Path) -> str:
+        try:
+            from bs4 import BeautifulSoup
+            with open(file_path, 'r', encoding='utf-8') as file:
+                soup = BeautifulSoup(file.read(), 'html.parser')
+                # Remove script and style elements
+                for script in soup(["script", "style"]):
+                    script.decompose()
+                # Get text and clean it up
+                text = soup.get_text()
+                # Remove extra whitespace
+                lines = (line.strip() for line in text.splitlines())
+                chunks = (phrase.strip() for line in lines for phrase in line.split("  "))
+                text = ' '.join(chunk for chunk in chunks if chunk)
+                return text
+        except ImportError:
+            logger.warning("BeautifulSoup not available for HTML processing")
+            # Fallback to basic text extraction
+            with open(file_path, 'r', encoding='utf-8') as file:
+                return file.read()
+        except Exception as e:
+            logger.error(f"Error extracting HTML text: {e}")
+            return ""
+    
     def _detect_document_type(self, text_content: str) -> str:
-        """Auto-detect document type based on content analysis."""
         text_lower = text_content.lower()
         scores = {}
         
@@ -260,7 +329,6 @@ class DocumentProcessor:
             return 'general'
     
     def _extract_metadata(self, file_path: Path, file_type: str) -> Dict[str, Any]:
-        """Extract metadata from the document."""
         metadata = {
             'file_size': file_path.stat().st_size,
             'created_date': datetime.fromtimestamp(file_path.stat().st_ctime).isoformat(),
@@ -288,7 +356,6 @@ class DocumentProcessor:
         return metadata
     
     def _generate_summary(self, text_content: str, document_type: str) -> str:
-        """Generate a summary of the document content."""
         if not text_content.strip():
             return "No content available for summary."
         
@@ -297,10 +364,8 @@ class DocumentProcessor:
         if document_type == 'case_law':
             summary_sentences = sentences[:3]  # First 3 sentences
         elif document_type == 'policy':
-            # Focus on policy scope and key points
             summary_sentences = sentences[:2]  # First 2 sentences
         elif document_type == 'training':
-            # Focus on learning objectives
             summary_sentences = sentences[:4]  # First 4 sentences
         else:
             summary_sentences = sentences[:3]
@@ -308,7 +373,6 @@ class DocumentProcessor:
         return ' '.join(summary_sentences)
     
     def _extract_key_entities(self, text_content: str, document_type: str) -> Dict[str, List[str]]:
-        """Extract key entities from the document."""
         entities = {
             'dates': [],
             'names': [],
@@ -327,7 +391,6 @@ class DocumentProcessor:
             dates = re.findall(pattern, text_content, re.IGNORECASE)
             entities['dates'].extend(dates)
         
-        # Extract case numbers and references
         if document_type == 'case_law':
             case_patterns = [
                 r'Case\s+No\.?\s*[A-Z0-9\-]+',
@@ -338,7 +401,6 @@ class DocumentProcessor:
                 refs = re.findall(pattern, text_content, re.IGNORECASE)
                 entities['references'].extend(refs)
         
-        # Extract policy numbers
         elif document_type == 'policy':
             policy_patterns = [
                 r'Policy\s+No\.?\s*[A-Z0-9\-]+',
@@ -351,7 +413,6 @@ class DocumentProcessor:
         return entities
     
     def _extract_structure(self, text_content: str, document_type: str) -> Dict[str, Any]:
-        """Extract document structure and sections."""
         structure = {
             'sections': [],
             'headings': [],
@@ -369,10 +430,8 @@ class DocumentProcessor:
         return structure
     
     def _generate_tags(self, text_content: str, document_type: str) -> List[str]:
-        """Generate tags for the document."""
         tags = [document_type]
         
-        # Add document type specific tags
         if document_type == 'case_law':
             tags.extend(['legal', 'court', 'judgment'])
         elif document_type == 'policy':
@@ -391,7 +450,6 @@ class DocumentProcessor:
         return list(set(tags))
     
     def _calculate_file_hash(self, file_path: Path) -> str:
-        """Calculate SHA-256 hash of the file."""
         hash_sha256 = hashlib.sha256()
         with open(file_path, "rb") as f:
             for chunk in iter(lambda: f.read(4096), b""):
@@ -399,7 +457,6 @@ class DocumentProcessor:
         return hash_sha256.hexdigest()
     
     def _save_processed_document(self, processed_data: Dict[str, Any]) -> None:
-        """Save processed document data to JSON file."""
         file_name = Path(processed_data['file_name']).stem
         output_file = self.output_dir / f"{file_name}_processed.json"
         
@@ -409,16 +466,6 @@ class DocumentProcessor:
         logger.info(f"Processed document saved to: {output_file}")
     
     def process_directory(self, directory_path: str, file_types: Optional[List[str]] = None) -> List[Dict[str, Any]]:
-        """
-        Process all documents in a directory.
-        
-        Args:
-            directory_path: Path to directory containing documents
-            file_types: Optional list of file extensions to process (e.g., ['.pdf', '.docx'])
-            
-        Returns:
-            List of processed document data
-        """
         directory = Path(directory_path)
         if not directory.exists():
             raise FileNotFoundError(f"Directory not found: {directory_path}")
@@ -440,7 +487,6 @@ class DocumentProcessor:
         return processed_documents
     
     def get_processing_stats(self) -> Dict[str, Any]:
-        """Get statistics about processed documents."""
         processed_files = list(self.output_dir.glob('*_processed.json'))
         
         stats = {
@@ -455,21 +501,87 @@ class DocumentProcessor:
                 with open(file_path, 'r', encoding='utf-8') as f:
                     data = json.load(f)
                 
-                # Count document types
                 doc_type = data.get('document_type', 'unknown')
                 stats['document_types'][doc_type] = stats['document_types'].get(doc_type, 0) + 1
                 
-                # Count file types
                 file_type = data.get('file_type', 'unknown')
                 stats['file_types'][file_type] = stats['file_types'].get(file_type, 0) + 1
                 
-                # Add file size
                 stats['total_size'] += data.get('metadata', {}).get('file_size', 0)
                 
             except Exception as e:
                 logger.error(f"Error reading processed file {file_path}: {e}")
         
         return stats
+    
+    def get_chunks_for_rag(self, file_path: str, document_type: Optional[str] = None) -> List[Dict[str, Any]]:
+        """Get document chunks optimized for RAG systems."""
+        processed_data = self.process_document(file_path, document_type)
+        return processed_data.get('chunks', [])
+    
+    def get_chunks_by_metadata(self, chunks: List[Dict[str, Any]], metadata_filter: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Filter chunks by metadata (e.g., statute numbers, case citations)."""
+        filtered_chunks = []
+        
+        for chunk in chunks:
+            chunk_metadata = chunk.get('metadata', {})
+            matches_filter = True
+            
+            for key, value in metadata_filter.items():
+                if key in chunk_metadata:
+                    if isinstance(value, list):
+                        # Check if any value in the filter matches any value in chunk metadata
+                        if not any(v in chunk_metadata[key] for v in value):
+                            matches_filter = False
+                            break
+                    else:
+                        # Direct value comparison
+                        if value not in chunk_metadata[key]:
+                            matches_filter = False
+                            break
+                else:
+                    matches_filter = False
+                    break
+            
+            if matches_filter:
+                filtered_chunks.append(chunk)
+        
+        return filtered_chunks
+    
+    def search_documents(self, query: str, top_k: int = 10, filter_metadata: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
+        """Search documents using vector database."""
+        if not self.vector_db:
+            raise RuntimeError("Vector database not initialized")
+        
+        return self.vector_db.search_legal_documents(query, top_k, filter_metadata)
+    
+    def search_by_statute(self, statute_number: str, top_k: int = 10) -> List[Dict[str, Any]]:
+        """Search for documents containing specific statute references."""
+        if not self.vector_db:
+            raise RuntimeError("Vector database not initialized")
+        
+        return self.vector_db.search_by_statute(statute_number, top_k)
+    
+    def search_by_case_citation(self, case_name: str, top_k: int = 10) -> List[Dict[str, Any]]:
+        """Search for documents containing specific case citations."""
+        if not self.vector_db:
+            raise RuntimeError("Vector database not initialized")
+        
+        return self.vector_db.search_by_case_citation(case_name, top_k)
+    
+    def search_by_document_type(self, document_type: str, query: str, top_k: int = 10) -> List[Dict[str, Any]]:
+        """Search within a specific document type."""
+        if not self.vector_db:
+            raise RuntimeError("Vector database not initialized")
+        
+        return self.vector_db.search_by_document_type(document_type, query, top_k)
+    
+    def get_vector_db_stats(self) -> Dict[str, Any]:
+        """Get vector database statistics."""
+        if not self.vector_db:
+            raise RuntimeError("Vector database not initialized")
+        
+        return self.vector_db.get_index_stats()
 
 
 if __name__ == "__main__":
@@ -480,3 +592,10 @@ if __name__ == "__main__":
     print("- process_document(file_path, document_type=None)")
     print("- process_directory(directory_path, file_types=None)")
     print("- get_processing_stats()")
+    print("- get_chunks_for_rag(file_path, document_type=None)")
+    print("- get_chunks_by_metadata(chunks, metadata_filter)")
+    print("- search_documents(query, top_k=10, filter_metadata=None)")
+    print("- search_by_statute(statute_number, top_k=10)")
+    print("- search_by_case_citation(case_name, top_k=10)")
+    print("- search_by_document_type(document_type, query, top_k=10)")
+    print("- get_vector_db_stats()")

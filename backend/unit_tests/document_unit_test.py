@@ -9,6 +9,9 @@ import os
 import json
 import shutil
 from pathlib import Path
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from document_processor import DocumentProcessor
 
 

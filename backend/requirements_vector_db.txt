@@ -1,0 +1,12 @@
+# Vector Database Dependencies
+pinecone>=3.0.0
+sentence-transformers>=2.2.0
+python-dotenv>=1.0.0
+
+# Core Dependencies
+numpy>=1.21.0
+torch>=1.9.0
+transformers>=4.20.0
+
+# Optional: For better performance
+accelerate>=0.20.0
