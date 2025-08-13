@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Paperclip, Send } from "lucide-react";
+import { Send } from "lucide-react";
 
 interface ChatInputProps {
   onSend: (text: string) => void;
@@ -22,14 +22,6 @@ export const ChatInput = ({ onSend, disabled = false }: ChatInputProps) => {
     <div className="group relative rounded-xl border bg-background p-3 shadow-sm focus-within:ring-2 focus-within:ring-primary/60">
       <div className="pointer-events-none absolute inset-0 -z-10 rounded-xl opacity-0 transition-opacity duration-300 group-focus-within:opacity-100" style={{ background: "var(--gradient-primary)" }} />
       <div className="flex items-end gap-2">
-        <button
-          type="button"
-          disabled={disabled}
-          className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border text-muted-foreground hover:bg-accent/50 disabled:opacity-50 disabled:cursor-not-allowed"
-          aria-label="Attach"
-        >
-          <Paperclip className="h-4 w-4" />
-        </button>
         <Textarea
           value={value}
           onChange={(e) => setValue(e.target.value)}

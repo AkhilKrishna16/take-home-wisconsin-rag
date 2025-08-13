@@ -47,7 +47,17 @@ class LegalVectorDatabase:
     - Metadata filtering for legal references
     - Efficient indexing schema for legal documents
     - Batch operations for large document sets
+    - Singleton pattern to prevent multiple initializations
     """
+    
+    _instance = None
+    _initialized = False
+    
+    def __new__(cls, index_name: str = "legal-documents"):
+        """Singleton pattern to ensure only one instance exists."""
+        if cls._instance is None:
+            cls._instance = super(LegalVectorDatabase, cls).__new__(cls)
+        return cls._instance
     
     def __init__(self, index_name: str = "legal-documents"):
         """
@@ -56,6 +66,10 @@ class LegalVectorDatabase:
         Args:
             index_name: Name of the Pinecone index
         """
+        # Only initialize once
+        if self._initialized:
+            return
+            
         self.index_name = index_name
         self.pc = None
         self.index = None
@@ -69,6 +83,9 @@ class LegalVectorDatabase:
         
         # Create or connect to index
         self._setup_index()
+        
+        # Mark as initialized
+        self._initialized = True
     
     def _initialize_pinecone(self):
         """Initialize Pinecone client."""

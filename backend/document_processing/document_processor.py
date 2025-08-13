@@ -63,8 +63,23 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class DocumentProcessor:
+    """
+    Document processor with singleton pattern to prevent multiple initializations.
+    """
+    
+    _instance = None
+    _initialized = False
+    
+    def __new__(cls, *args, **kwargs):
+        """Singleton pattern to ensure only one instance exists."""
+        if cls._instance is None:
+            cls._instance = super(DocumentProcessor, cls).__new__(cls)
+        return cls._instance
     
     def __init__(self, output_dir: str = "processed_documents", chunk_size: int = 1000, chunk_overlap: int = 200, use_vector_db: bool = True):
+        # Only initialize once
+        if self._initialized:
+            return
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(exist_ok=True)
         
@@ -125,6 +140,9 @@ class DocumentProcessor:
                 ]
             }
         }
+        
+        # Mark as initialized
+        self._initialized = True
     
     def process_document(self, file_path: str, document_type: Optional[str] = None) -> Dict[str, Any]:
         file_path = Path(file_path)

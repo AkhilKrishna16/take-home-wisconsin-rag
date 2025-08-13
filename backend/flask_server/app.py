@@ -60,9 +60,17 @@ background_tasks = {}
 # Initialize cross-reference system
 cross_ref_system = None
 
+# Flag to track if components have been initialized
+_components_initialized = False
+
 def initialize_components():
     """Initialize all system components."""
-    global chatbot, document_processor, vector_db, cross_ref_system
+    global chatbot, document_processor, vector_db, cross_ref_system, _components_initialized
+    
+    # Check if components are already initialized
+    if _components_initialized:
+        logger.info("🔄 Components already initialized, skipping...")
+        return True
     
     try:
         # Check if required environment variables are set
@@ -94,6 +102,9 @@ def initialize_components():
         # Initialize cross-reference system
         cross_ref_system = CrossReferenceSystem()
         logger.info("✅ Cross-reference system initialized")
+        
+        # Mark components as initialized
+        _components_initialized = True
         
         return True
         
@@ -1083,7 +1094,7 @@ if __name__ == '__main__':
         app.run(
             host='0.0.0.0',
             port=5000,
-            debug=True,
+            debug=True,  # Keep debug mode for development
             threaded=True
         )
     else:

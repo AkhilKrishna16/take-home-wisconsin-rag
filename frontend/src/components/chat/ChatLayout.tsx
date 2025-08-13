@@ -23,17 +23,10 @@ const formatTextWithBullets = (text: string): string => {
 
 // Helper function to generate intelligent chat names
 const generateChatName = (messages: Message[]): string => {
-  console.log('generateChatName called with messages:', messages);
-  
-  if (messages.length <= 1) {
-    console.log('Not enough messages, returning New Chat');
-    return 'New Chat';
-  }
-  
+  if (messages.length <= 1) return 'New Chat';
+
   const userMessages = messages.filter(m => m.role === 'user').slice(0, 3); // Take first 3 questions
   const questions = userMessages.map(m => m.content.toLowerCase());
-  console.log('User messages found:', userMessages);
-  console.log('Questions:', questions);
   
   const legalKeywords = [
     { keyword: 'miranda rights', weight: 10 },
@@ -80,26 +73,20 @@ const generateChatName = (messages: Message[]): string => {
     legalKeywords.forEach(({ keyword, weight }) => {
       if (question.includes(keyword) && !foundKeywords.some(fk => fk.keyword === keyword)) {
         foundKeywords.push({ keyword, weight });
-        console.log('Found keyword:', keyword, 'with weight:', weight);
       }
     });
   });
   
-  console.log('All found keywords:', foundKeywords);
-  
   // Sort by weight and take top keywords
   foundKeywords.sort((a, b) => b.weight - a.weight);
   const topKeywords = foundKeywords.slice(0, 3);
-  console.log('Top keywords:', topKeywords);
   
   // Generate name based on found keywords
   if (topKeywords.length > 0) {
     const keywords = topKeywords.map(k => k.keyword.split(' ').map(word => 
       word.charAt(0).toUpperCase() + word.slice(1)
     ).join(' '));
-    const result = keywords.join(' ');
-    console.log('Generated name from keywords:', result);
-    return result;
+    return keywords.join(' ');
   }
   
   // Fallback: extract meaningful words from first question
@@ -351,25 +338,18 @@ export const ChatLayout = () => {
   };
 
   const autoSaveChat = async (sessionName?: string) => {
-    if (!autoSaveEnabled || messages.length <= 1) {
-      console.log('Auto-save skipped:', { autoSaveEnabled, messageCount: messages.length });
-      return;
-    }
+    if (!autoSaveEnabled || messages.length <= 1) return;
     
     try {
-      console.log('Auto-save triggered with messages:', messages);
-      
       // Generate intelligent name if no session name provided
       let displayName = sessionName;
       if (!displayName) {
         if (currentSessionName && !currentSessionName.startsWith('Auto_Save_')) {
           // Keep existing intelligent name
           displayName = currentSessionName;
-          console.log('Using existing session name:', displayName);
         } else {
           // Generate new intelligent name
           displayName = generateChatName(messages);
-          console.log('Generated new name:', displayName);
         }
       }
       
@@ -377,18 +357,15 @@ export const ChatLayout = () => {
       const timestamp = Date.now();
       const filename = `${displayName.replace(/[^a-zA-Z0-9\s]/g, '_').replace(/\s+/g, '_')}_${timestamp}`;
       
-      console.log('Saving chat with name:', displayName);
       const response = await apiService.saveChat(displayName);
       
-      if (response.status === 'success') {
+      if (response.success) {
         // Update current session name if this is a new auto-save
         if (!currentSessionName || currentSessionName.startsWith('Auto_Save_')) {
           setCurrentSessionName(displayName);
         }
         
-        console.log('Auto-saved chat successfully:', displayName, 'as', filename);
-      } else {
-        console.error('Auto-save response not successful:', response);
+        console.log('Auto-saved chat:', displayName, 'as', filename);
       }
     } catch (error) {
       console.error('Auto-save failed:', error);

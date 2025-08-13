@@ -48,7 +48,17 @@ class LangChainLegalRAGChatbot:
     - Legal disclaimers
     - Use of force query handling
     - Source citations in all responses
+    - Singleton pattern to prevent multiple initializations
     """
+    
+    _instance = None
+    _initialized = False
+    
+    def __new__(cls, **kwargs):
+        """Singleton pattern to ensure only one instance exists."""
+        if cls._instance is None:
+            cls._instance = super(LangChainLegalRAGChatbot, cls).__new__(cls)
+        return cls._instance
     
     def __init__(self, 
                  openai_api_key: Optional[str] = None,
@@ -56,6 +66,10 @@ class LangChainLegalRAGChatbot:
                  max_tokens: int = 1000,
                  temperature: float = 0.3,
                  streaming: bool = False):
+        
+        # Only initialize once
+        if self._initialized:
+            return
         """
         Initialize the LangChain RAG chatbot.
         
@@ -110,6 +124,9 @@ class LangChainLegalRAGChatbot:
         
         # Create LangChain chains
         self.chains = self._create_chains()
+        
+        # Mark as initialized
+        self._initialized = True
     
     def _create_prompt_templates(self) -> Dict[str, ChatPromptTemplate]:
         """Create LangChain prompt templates for different use cases."""
