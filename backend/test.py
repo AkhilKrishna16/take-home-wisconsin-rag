@@ -73,6 +73,9 @@ def clean_html_to_text(html):
     out = out[start_idx:]
     return "\n".join(out).strip()
 
+def process_html_document(title, url, html, save_dir=None):
+    pass
+
 def pdf_bytes_to_text(pdf_bytes):
     try:
         return extract_text(io.BytesIO(pdf_bytes)).strip()

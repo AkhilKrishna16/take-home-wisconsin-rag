@@ -1,0 +1,167 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Design System - Dark theme by default. All colors in HSL. */
+
+@layer base {
+  :root {
+    /* Surfaces */
+    --background: 0 0% 7%;           /* #121212 */
+    --foreground: 0 0% 100%;         /* #ffffff */
+
+    --card: 0 0% 3.9%;               /* #0a0a0a */
+    --card-foreground: 0 0% 100%;
+
+    --popover: 0 0% 7%;
+    --popover-foreground: 0 0% 100%;
+
+    /* Brand */
+    --primary: 215 100% 44%;         /* #005cde */
+    --primary-foreground: 210 40% 98%;
+    --secondary: 221 83% 53%;        /* #2563eb */
+    --secondary-foreground: 210 40% 98%;
+
+    /* Semantic */
+    --success: 155 100% 36%;         /* #00B96B */
+    --success-strong: 142 76% 47%;   /* #4ade80 */
+    --success-foreground: 210 40% 98%;
+
+    --warning: 28 90% 53%;           /* #F4801A */
+    --warning-strong: 48 96% 53%;    /* #eab308 */
+    --warning-foreground: 210 40% 98%;
+
+    --destructive: 0 84.2% 60.2%;    /* #ef4444 */
+    --destructive-foreground: 210 40% 98%;
+
+    --muted: 0 0% 3.9%;              /* #0a0a0a */
+    --muted-foreground: 215 20% 70%;  /* ~#d1d5db */
+
+    --accent: 0 0% 10%;
+    --accent-foreground: 0 0% 100%;
+
+    /* Borders & rings */
+    --border: 0 0% 20%;              /* #333333 */
+    --input: 0 0% 20%;
+    --ring: 215 100% 44%;            /* brand focus */
+
+    /* Radius */
+    --radius: 0.75rem;               /* 12px for cards */
+
+    /* Sidebar (not primary here, but mapped) */
+    --sidebar-background: 0 0% 7%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 215 100% 44%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 0 0% 10%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 0 0% 20%;
+    --sidebar-ring: 215 100% 44%;
+
+    /* Typography */
+    --font-sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", JetBrains Mono, monospace;
+
+    /* Effects */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--secondary)));
+    --shadow-elegant: 0 10px 30px -10px hsl(var(--primary) / 0.30);
+    --shadow-glow: 0 0 40px hsl(var(--primary) / 0.35);
+    --glass-bg: hsl(0 0% 100% / 0.04);
+    --glass-border: hsl(0 0% 100% / 0.08);
+  }
+
+  /* Optional light theme token mapping (not used by default). */
+  .light {
+    --background: 0 0% 100%;         /* #ffffff */
+    --foreground: 220 9% 10%;        /* #111827 */
+
+    --card: 0 0% 100%;
+    --card-foreground: 220 9% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 9% 10%;
+
+    --primary: 215 100% 44%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 221 83% 53%;
+    --secondary-foreground: 0 0% 100%;
+
+    --success: 155 100% 36%;
+    --success-strong: 142 76% 47%;
+    --success-foreground: 220 9% 10%;
+
+    --warning: 28 90% 53%;
+    --warning-strong: 48 96% 53%;
+    --warning-foreground: 220 9% 10%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+
+    --muted: 220 14% 96%;            /* #f3f4f6 */
+    --muted-foreground: 215 16% 33%;  /* #374151 */
+
+    --accent: 0 0% 100%;
+    --accent-foreground: 220 9% 10%;
+
+    --border: 220 14% 91%;           /* #e5e7eb */
+    --input: 220 14% 91%;
+    --ring: 215 100% 44%;
+
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 220 9% 10%;
+    --sidebar-primary: 215 100% 44%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 14% 96%;
+    --sidebar-accent-foreground: 220 9% 10%;
+    --sidebar-border: 220 14% 91%;
+    --sidebar-ring: 215 100% 44%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html, body {
+    @apply bg-background text-foreground antialiased;
+    font-family: var(--font-sans);
+  }
+
+  code, pre, kbd, samp {
+    font-family: var(--font-mono);
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply tracking-wide;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+}
+
+/* Utilities and helpers */
+@layer utilities {
+  .hover-scale { @apply transition-transform duration-200 hover:scale-[1.02]; }
+  .story-link::after { content: ""; position: absolute; left: 0; bottom: 0; height: 2px; width: 100%; transform: scaleX(0); transform-origin: 100% 100%; background: hsl(var(--primary)); transition: transform .3s ease; }
+  .story-link:hover::after { transform: scaleX(1); transform-origin: 0 100%; }
+
+  .glass-panel { background: var(--glass-bg); backdrop-filter: blur(10px); border: 1px solid var(--glass-border); }
+  .shadow-elegant { box-shadow: var(--shadow-elegant); }
+  .shadow-glow { box-shadow: var(--shadow-glow); }
+
+  /* Skeleton shimmer */
+  .skeleton { position: relative; overflow: hidden; background-color: hsl(var(--muted)); }
+  .skeleton::after { content: ""; position: absolute; inset: 0; transform: translateX(-100%); background: linear-gradient(90deg, transparent, hsl(var(--foreground)/0.06), transparent); animation: shimmer 1.2s infinite; }
+}
+
+@keyframes shimmer {
+  100% { transform: translateX(100%); }
+}
+
+/* Animations (mirrored in tailwind.config extensions) */
+@keyframes fade-in { 0% { opacity: 0; transform: translateY(10px); } 100% { opacity: 1; transform: translateY(0); } }
+@keyframes fade-out { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(10px); } }
+@keyframes scale-in { 0% { transform: scale(0.98); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+@keyframes scale-out { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(0.98); opacity: 0; } }
+@keyframes slide-in-right { 0% { transform: translateX(100%); } 100% { transform: translateX(0); } }
+@keyframes slide-out-right { 0% { transform: translateX(0); } 100% { transform: translateX(100%); } }
