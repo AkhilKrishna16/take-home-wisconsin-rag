@@ -519,8 +519,28 @@ def download_document(filename):
         except Exception:
             pass  # Fall back to manual mapping
         
-        # Try to map the filename to an actual file
-        actual_filename = filename_mapping.get(filename.upper(), filename)
+        # Create a comprehensive mapping from processed filenames to actual files
+        # This handles the case where files were moved from uploads/ to pdfs/
+        comprehensive_mapping = {
+                     # Map processed filenames to actual files in pdfs/
+                     '46F874E8-7C26-469A-AEDE-D944E5637B12_3.PDF': '1.pdf',
+                     '46F874E8-7C26-469A-AEDE-D944E5637B12_3.pdf': '1.pdf',
+                     'C74C1A87-8264-4600-B68C-906E1459C20D_2.PDF': '2.pdf',
+                     'C74C1A87-8264-4600-B68C-906E1459C20D_2.pdf': '2.pdf',
+                     'MIRANDAWARNINGFINAL.PDF': 'mirandawarningfinal.pdf',
+                     'MIRANDAWARNINGFINAL.pdf': 'mirandawarningfinal.pdf',
+                     # Add mappings for files that were in uploads/ but are now in pdfs/
+                     '287EC2E6-CCBB-4512-ADAA-BEE90E424B46_MIRANDAWARNINGFINAL.PDF': 'mirandawarningfinal.pdf',
+                     '287EC2E6-CCBB-4512-ADAA-BEE90E424B46_MIRANDAWARNINGFINAL.pdf': 'mirandawarningfinal.pdf',
+                     # Handle the truncated filename case - map to existing Wisconsin Statutes file
+                     'DAF-468E-B9C0-C1F_70.PDF': '1.pdf',
+                     'DAF-468E-B9C0-C1F_70.pdf': '1.pdf',
+                     '110D7158-F0AF-468E-B9C0-AADF25337C1F_70.PDF': '1.pdf',
+                     '110D7158-F0AF-468E-B9C0-AADF25337C1F_70.pdf': '1.pdf',
+                 }
+        
+        # Try to map the filename to an actual file using comprehensive mapping
+        actual_filename = comprehensive_mapping.get(filename.upper(), filename)
         file_path = pdfs_dir / actual_filename
         
         # If the mapped file doesn't exist, try the original filename
@@ -689,6 +709,72 @@ def save_chat():
     except Exception as e:
         logger.error(f"Error saving chat: {e}")
         return format_error_response(f"Error saving chat: {str(e)}", 500)
+
+@app.route('/api/chat/generate-name', methods=['POST'])
+def generate_chat_name():
+    """Generate an intelligent chat name using LLM based on the first query."""
+    try:
+        data = request.get_json()
+        first_query = data.get('query', '')
+        
+        if not first_query.strip():
+            return format_error_response("No query provided", 400)
+        
+        # Use the chatbot to generate a name
+        try:
+            if chatbot:
+                # Create a simple prompt for name generation
+                name_prompt = f"""Based on this legal question, generate a concise, professional title (3-5 words max) that captures the main topic:
+
+Question: {first_query}
+
+Generate only the title, nothing else:"""
+                
+                # Get a quick response for naming
+                response = chatbot.ask(name_prompt)
+                
+                # Clean up the response to get just the title
+                title = response.strip()
+                # Remove quotes if present
+                if title.startswith('"') and title.endswith('"'):
+                    title = title[1:-1]
+                # Remove any extra text after the title
+                title = title.split('\n')[0].strip()
+                
+                # Ensure it's not too long
+                if len(title) > 50:
+                    words = title.split()[:5]
+                    title = ' '.join(words)
+                
+                # Fallback if response is empty or too short
+                if not title or len(title) < 3:
+                    title = "Legal Inquiry"
+                
+                logger.info(f"Generated LLM chat name: {title} for query: {first_query}")
+                return format_success_response({
+                    'name': title
+                }, f"Generated chat name: {title}")
+            else:
+                logger.warning("Chatbot not available, using fallback naming")
+                raise Exception("Chatbot not available")
+                
+        except Exception as e:
+            logger.error(f"Error generating chat name with LLM: {e}")
+            # Fallback to simple keyword extraction
+            words = first_query.split()
+            meaningful_words = [w for w in words if len(w) > 3 and w.lower() not in ['what', 'how', 'when', 'where', 'why', 'tell', 'about', 'explain']]
+            if meaningful_words:
+                title = ' '.join(meaningful_words[:3]).title()
+            else:
+                title = "Legal Inquiry"
+            
+            return format_success_response({
+                'name': title
+            }, f"Generated chat name: {title}")
+        
+    except Exception as e:
+        logger.error(f"Error generating chat name: {e}")
+        return format_error_response(f"Error generating chat name: {str(e)}", 500)
 
 @app.route('/api/chat/export', methods=['POST'])
 def export_chat():

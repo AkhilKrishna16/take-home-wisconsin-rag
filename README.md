@@ -1,193 +1,233 @@
-# Wisconsin Statutes RAG Chatbot
+# Wisconsin Legal RAG Chatbot
 
-A Retrieval-Augmented Generation (RAG) chatbot for Wisconsin legal documents, built with Flask, LangChain, Pinecone, and React.
+A comprehensive legal document retrieval and question-answering system designed for Wisconsin law enforcement officers. This RAG (Retrieval-Augmented Generation) chatbot provides intelligent access to Wisconsin State Statutes, case law, department policies, and training materials.
 
-## Features
+## 🚀 Features
 
-- **Streaming Chat**: Real-time, character-by-character responses with slower typing animation
-- **Document Upload**: Drag-and-drop interface for uploading personal documents (PDF, DOCX, TXT, MD, HTML)
-- **Semantic Search**: Advanced RAG system with Pinecone vector database
-- **Source Citations**: Dynamic display of relevant source documents for each query
-- **Background Processing**: Documents are processed and indexed in the background
-- **Health Monitoring**: Real-time connection status and component health checks
+### Core Functionality
+- **Intelligent Document Processing**: Supports PDF, DOCX, and text files with OCR capabilities
+- **Advanced RAG System**: Hybrid search combining semantic and keyword matching
+- **Real-time Chat Interface**: Streaming responses with source citations
+- **Document Download**: Click-to-download original source documents
+- **Chat History**: Intelligent LLM-based chat naming and session management
+- **Mobile-Responsive Design**: Optimized for field use on mobile devices
 
-## Quick Start
+### Legal-Specific Features
+- **Jurisdiction-Aware Search**: Prioritizes Wisconsin-specific laws and policies
+- **Citation Tracking**: Maintains legal citation chains and cross-references
+- **Confidence Scoring**: Match scores for source relevance
+- **Safety Warnings**: Flags outdated or jurisdiction-specific information
+- **Quick Access Queries**: Pre-built queries for common legal scenarios
 
-### Prerequisites
+### User Experience
+- **Stop Generation**: Interrupt ongoing responses
+- **Auto-Save**: Intelligent chat session management
+- **Export Functionality**: Export conversations as reports
+- **Toast Notifications**: User-friendly error and success messages
+- **Dark/Light Theme**: Modern UI with accessibility features
+
+## 🏗️ Architecture
+
+### Backend (Python/Flask)
+- **Vector Database**: Pinecone for semantic search
+- **Document Processing**: Intelligent chunking with metadata preservation
+- **LLM Integration**: OpenAI GPT for response generation
+- **OCR Support**: pytesseract for image-based PDF processing
+- **API Endpoints**: RESTful API with streaming support
+
+### Frontend (React/TypeScript)
+- **Modern UI**: Built with Tailwind CSS and shadcn/ui
+- **Real-time Updates**: Server-Sent Events for streaming
+- **State Management**: React hooks for efficient state handling
+- **Type Safety**: Full TypeScript implementation
+- **Responsive Design**: Mobile-first approach
+
+## 📋 Prerequisites
 
 - Python 3.8+
-- Node.js 16+
-- OpenAI API key
+- Node.js 18+
+- npm or yarn
 - Pinecone API key
+- OpenAI API key
 
-### Backend Setup
+## 🛠️ Installation
 
-1. **Clone and navigate to backend:**
-   ```bash
-   cd backend
-   ```
-
-2. **Create environment file:**
-   ```bash
-   cp .env.example .env
-   # Edit .env with your API keys
-   ```
-
-3. **Install dependencies:**
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-4. **Start the backend:**
-   ```bash
-   python start_backend.py
-   ```
-
-The server will be available at `http://localhost:5001`
-
-### Frontend Setup
-
-1. **Navigate to frontend:**
-   ```bash
-   cd frontend
-   ```
-
-2. **Install dependencies:**
-   ```bash
-   npm install
-   ```
-
-3. **Start the development server:**
-   ```bash
-   npm run dev
-   ```
-
-The frontend will be available at `http://localhost:5173`
-
-## Usage
-
-### Chat Interface
-
-1. **Ask Questions**: Type legal questions in the chat interface
-2. **View Sources**: Relevant source documents appear on the right side
-3. **Real-time Responses**: Watch responses stream in character by character
-
-### Document Upload
-
-1. **Click "Upload Documents"** in the header
-2. **Drag and Drop** files or click to browse
-3. **Supported Formats**: PDF, DOCX, DOC, TXT, MD, HTML
-4. **Background Processing**: Documents are automatically chunked and indexed
-5. **Document Count**: See how many documents are in your knowledge base
-
-### Example Queries
-
-- "What is the 4th amendment?"
-- "Explain Wisconsin's open records law"
-- "What are the requirements for a search warrant?"
-- "How does the state handle juvenile cases?"
-
-## API Endpoints
-
-### Chat
-- `POST /api/chat/stream` - Streaming chat endpoint
-- `POST /api/chat/sources` - Get source documents for a query
-
-### Documents
-- `POST /api/documents/upload` - Upload and process documents
-- `GET /api/documents/list` - List all documents
-- `DELETE /api/documents/<id>` - Delete a document
-- `POST /api/documents/search` - Search documents
-
-### System
-- `GET /health` - Health check
-- `GET /api/tasks/<id>` - Get task status
-- `GET /api/tasks` - List all tasks
-
-## Architecture
-
-### Backend Components
-
-- **Flask Server**: REST API with streaming support
-- **LangChain RAG**: Advanced retrieval and generation
-- **Pinecone Vector DB**: Semantic document storage
-- **Document Processor**: Multi-format document processing
-- **Background Tasks**: Asynchronous document processing
-
-### Frontend Components
-
-- **React + TypeScript**: Modern UI framework
-- **Streaming Chat**: Real-time response display
-- **Document Upload**: Drag-and-drop interface
-- **Source Display**: Dynamic source document cards
-- **Health Monitoring**: Connection status indicators
-
-## Configuration
-
-### Environment Variables
-
+### 1. Clone the Repository
 ```bash
-# Required
-OPENAI_API_KEY=your_openai_key
-PINECONE_API_KEY=your_pinecone_key
-PINECONE_ENVIRONMENT=your_pinecone_environment
-
-# Optional
-PINECONE_INDEX_NAME=legal-documents
-CHUNK_SIZE=1000
-CHUNK_OVERLAP=200
-LOG_LEVEL=INFO
+git clone <repository-url>
+cd take-home-wisconsin-rag
 ```
 
-### File Upload Settings
-
-- **Max File Size**: 50MB
-- **Supported Formats**: PDF, DOCX, DOC, TXT, MD, HTML
-- **Processing**: Automatic chunking and vectorization
-- **Storage**: Temporary files cleaned up after processing
-
-## Development
-
-### Running Tests
-
+### 2. Backend Setup
 ```bash
-# Backend tests
-cd backend
-python -m pytest
+# Create virtual environment
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 
-# Frontend tests
+# Install dependencies
+cd backend
+pip install -r flask_server/requirements.txt
+
+# Set environment variables
+export PINECONE_API_KEY="your-pinecone-api-key"
+export OPENAI_API_KEY="your-openai-api-key"
+export PINECONE_ENVIRONMENT="your-pinecone-environment"
+export PINECONE_INDEX_NAME="your-index-name"
+```
+
+### 3. Frontend Setup
+```bash
+cd frontend
+npm install
+```
+
+## 🚀 Running the Application
+
+### 1. Start the Backend Server
+```bash
+cd backend
+source ../venv/bin/activate
+python3 main.py
+```
+The backend will start on `http://localhost:5001`
+
+### 2. Start the Frontend Development Server
+```bash
+cd frontend
+npm run dev
+```
+The frontend will start on `http://localhost:5173`
+
+## 📚 Usage
+
+### Document Upload
+1. Click "Upload Documents" in the sidebar
+2. Select PDF, DOCX, or text files
+3. Choose document type (statutes, case law, policies, training)
+4. Documents are automatically processed and indexed
+
+### Chat Interface
+1. Type your legal question in the chat input
+2. Receive streaming responses with source citations
+3. Click on source documents to download originals
+4. Use quick query buttons for common scenarios
+
+### Chat Management
+- **Auto-Save**: Chats are automatically saved with intelligent naming
+- **Load History**: Access previous conversations from the sidebar
+- **Export**: Download chat reports in various formats
+- **Clear Chat**: Start new conversations
+
+### Advanced Features
+- **Stop Generation**: Click the stop button to interrupt responses
+- **Source Downloads**: Click download icons on source cards
+- **Confidence Scores**: View match scores for source relevance
+- **Mobile Optimization**: Responsive design for field use
+
+## 🔧 Configuration
+
+### Environment Variables
+```bash
+# Required
+PINECONE_API_KEY=your-pinecone-api-key
+OPENAI_API_KEY=your-openai-api-key
+PINECONE_ENVIRONMENT=your-pinecone-environment
+PINECONE_INDEX_NAME=your-index-name
+
+# Optional
+FLASK_ENV=development
+DEBUG=True
+```
+
+### Document Processing Settings
+- **Chunk Size**: Configurable text chunking for optimal retrieval
+- **Metadata Preservation**: Maintains legal citations and document structure
+- **OCR Support**: Automatic text extraction from image-based PDFs
+
+## 📁 Project Structure
+
+```
+take-home-wisconsin-rag/
+├── backend/
+│   ├── flask_server/          # Flask application
+│   ├── chatbot/              # RAG chatbot implementation
+│   ├── document_processing/  # Document processing pipeline
+│   ├── vector_db/           # Vector database operations
+│   ├── pdfs/                # Document storage
+│   └── processed_documents/ # Processed document metadata
+├── frontend/
+│   ├── src/
+│   │   ├── components/      # React components
+│   │   ├── lib/            # API and utilities
+│   │   └── pages/          # Page components
+│   └── public/             # Static assets
+└── venv/                   # Python virtual environment
+```
+
+## 🔍 API Endpoints
+
+### Chat Endpoints
+- `POST /api/chat/stream` - Streaming chat responses
+- `POST /api/chat/save` - Save chat session
+- `GET /api/chat/list-saved` - List saved chats
+- `GET /api/chat/load/{filename}` - Load saved chat
+- `POST /api/chat/generate-name` - Generate chat name with LLM
+
+### Document Endpoints
+- `POST /api/documents/upload` - Upload documents
+- `GET /api/documents/download/{filename}` - Download documents
+- `GET /api/documents/list` - List processed documents
+
+### Processing Endpoints
+- `POST /api/process` - Process uploaded documents
+- `GET /api/tasks/{task_id}` - Get processing task status
+- `GET /api/tasks` - List all processing tasks
+
+## 🧪 Testing
+
+### Backend Tests
+```bash
+cd backend
+python -m pytest testing/
+```
+
+### Frontend Tests
+```bash
 cd frontend
 npm test
 ```
 
-### Adding New Document Types
+## 🚀 Deployment
 
-1. Update `ALLOWED_EXTENSIONS` in `flask_server/app.py`
-2. Add processor in `document_processing/document_processor.py`
-3. Update frontend file input accept attribute
+### Production Setup
+1. Set production environment variables
+2. Configure reverse proxy (nginx)
+3. Set up SSL certificates
+4. Configure database backups
+5. Set up monitoring and logging
 
-### Customizing RAG System
+### Docker Deployment
+```bash
+# Build and run with Docker Compose
+docker-compose up -d
+```
 
-- Modify prompts in `chatbot/langchain_rag_chatbot.py`
-- Adjust chunking parameters in `document_processing/document_chunker.py`
-- Configure vector database settings in `vector_db/vector_database.py`
+## 🔒 Security Features
 
-## Troubleshooting
+- **Input Validation**: Sanitized user inputs
+- **File Upload Security**: Restricted file types and sizes
+- **Path Traversal Protection**: Secure file access
+- **CORS Configuration**: Proper cross-origin settings
+- **API Rate Limiting**: Request throttling
 
-### Common Issues
+## 📊 Performance
 
-1. **Port 5000 in use**: The backend now uses port 5001 to avoid conflicts with macOS AirPlay
-2. **Missing API keys**: Ensure all required environment variables are set
-3. **Upload failures**: Check file size and format restrictions
-4. **Processing errors**: Monitor backend logs for detailed error messages
+- **Streaming Responses**: Real-time chat experience
+- **Caching**: Optimized document retrieval
+- **Lazy Loading**: Efficient resource management
+- **Mobile Optimization**: Responsive design for field use
 
-### Logs
-
-- **Backend logs**: `backend/backend.log`
-- **Frontend logs**: Browser developer console
-- **Task status**: Available via `/api/tasks` endpoint
-
-## Contributing
+## 🤝 Contributing
 
 1. Fork the repository
 2. Create a feature branch
@@ -195,6 +235,33 @@ npm test
 4. Add tests
 5. Submit a pull request
 
-## License
+## 📄 License
 
-This project is for educational and informational purposes only. It does not provide legal advice. Always consult with qualified legal counsel for specific legal matters.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🆘 Support
+
+For support and questions:
+- Check the documentation
+- Review existing issues
+- Create a new issue with detailed information
+
+## 🔄 Changelog
+
+### Version 1.0.0
+- Initial release with core RAG functionality
+- Document processing pipeline
+- Real-time chat interface
+- Mobile-responsive design
+- LLM-based chat naming
+- Document download functionality
+- Auto-save and chat history
+- Stop generation feature
+- Export functionality
+- Comprehensive error handling
+
+---
+
+**Built for Wisconsin Law Enforcement** 🚔
+
+This system is designed to provide quick, accurate access to legal information in the field, helping officers make informed decisions while maintaining compliance with Wisconsin laws and department policies.

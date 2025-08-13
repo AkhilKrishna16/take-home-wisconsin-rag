@@ -21,86 +21,28 @@ const formatTextWithBullets = (text: string): string => {
   return text.replace(/\*\*([^*]+)\*\*/g, '• $1');
 };
 
-// Helper function to generate intelligent chat names
-const generateChatName = (messages: Message[]): string => {
-  if (messages.length <= 1) return 'New Chat';
-
-  const userMessages = messages.filter(m => m.role === 'user').slice(0, 3); // Take first 3 questions
-  const questions = userMessages.map(m => m.content.toLowerCase());
-  
-  const legalKeywords = [
-    { keyword: 'miranda rights', weight: 10 },
-    { keyword: 'use of force', weight: 10 },
-    { keyword: 'probable cause', weight: 9 },
-    { keyword: 'search warrant', weight: 9 },
-    { keyword: 'domestic violence', weight: 8 },
-    { keyword: 'traffic stop', weight: 8 },
-    { keyword: 'excessive force', weight: 8 },
-    { keyword: 'reasonable suspicion', weight: 7 },
-    { keyword: 'evidence admissibility', weight: 7 },
-    { keyword: 'juvenile law', weight: 7 },
-    
-    // Medium priority - general legal terms
-    { keyword: 'arrest', weight: 6 },
-    { keyword: 'assault', weight: 6 },
-    { keyword: 'theft', weight: 6 },
-    { keyword: 'burglary', weight: 6 },
-    { keyword: 'dui', weight: 6 },
-    { keyword: 'drug possession', weight: 6 },
-    { keyword: 'weapon', weight: 6 },
-    { keyword: 'firearm', weight: 6 },
-    { keyword: 'statutes', weight: 5 },
-    { keyword: 'laws', weight: 5 },
-    { keyword: 'procedures', weight: 5 },
-    { keyword: 'training', weight: 5 },
-    { keyword: 'policy', weight: 5 },
-    { keyword: 'jurisdiction', weight: 5 },
-    
-    // Low priority - locations and general terms
-    { keyword: 'wisconsin', weight: 4 },
-    { keyword: 'madison', weight: 4 },
-    { keyword: 'milwaukee', weight: 4 },
-    { keyword: 'dane county', weight: 4 },
-    { keyword: 'property tax', weight: 4 },
-    { keyword: 'boundaries', weight: 3 },
-    { keyword: 'citations', weight: 3 },
-    { keyword: 'county', weight: 3 }
-  ];
-  
-  // Find keywords in questions with weights
-  const foundKeywords: { keyword: string; weight: number }[] = [];
-  questions.forEach(question => {
-    legalKeywords.forEach(({ keyword, weight }) => {
-      if (question.includes(keyword) && !foundKeywords.some(fk => fk.keyword === keyword)) {
-        foundKeywords.push({ keyword, weight });
-      }
-    });
-  });
-  
-  // Sort by weight and take top keywords
-  foundKeywords.sort((a, b) => b.weight - a.weight);
-  const topKeywords = foundKeywords.slice(0, 3);
-  
-  // Generate name based on found keywords
-  if (topKeywords.length > 0) {
-    const keywords = topKeywords.map(k => k.keyword.split(' ').map(word => 
-      word.charAt(0).toUpperCase() + word.slice(1)
-    ).join(' '));
-    return keywords.join(' ');
+// Helper function to generate intelligent chat names using LLM
+const generateChatName = async (firstQuery: string): Promise<string> => {
+  try {
+    const result = await apiService.generateChatName(firstQuery);
+    if (result.success && result.name) {
+      return result.name;
+    }
+  } catch (error) {
+    console.error('Error generating chat name with LLM:', error);
   }
   
-  // Fallback: extract meaningful words from first question
-  if (questions.length > 0) {
-    const firstQuestion = questions[0];
-    // Remove common words and extract meaningful terms
-    const commonWords = ['what', 'how', 'when', 'where', 'why', 'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may', 'might', 'can', 'must', 'shall'];
-    const words = firstQuestion.split(' ')
-      .filter(word => word.length > 3 && !commonWords.includes(word.toLowerCase()))
-      .slice(0, 3);
-    
-    if (words.length >= 2) {
-      return words.map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-    }
+  // Fallback to simple keyword extraction
+  const words = firstQuery.split(' ');
+  const meaningfulWords = words.filter(word => 
+    word.length > 3 && 
+    !['what', 'how', 'when', 'where', 'why', 'tell', 'about', 'explain'].includes(word.toLowerCase())
+  );
+  
+  if (meaningfulWords.length >= 2) {
+    return meaningfulWords.slice(0, 3).map(w => 
+      w.charAt(0).toUpperCase() + w.slice(1)
+    ).join(' ');
   }
   
   return 'Legal Inquiry';
@@ -266,10 +208,21 @@ export const ChatLayout = () => {
     setMessages((m) => [...m, { role: "user", content: text }]);
     setLoading(true);
     
-          // Auto-save the chat after adding user message
-      if (autoSaveEnabled) {
-        setTimeout(() => autoSaveChat(), 100); // Small delay to ensure message is added
+    // Only create a new chat after the first user message (not the initial assistant message)
+    const userMessageCount = messages.filter(m => m.role === 'user').length;
+    const isFirstUserMessage = userMessageCount === 0; // This is the first user message
+    
+    if (isFirstUserMessage && autoSaveEnabled) {
+      // Generate chat name using LLM for the first query
+      try {
+        const chatName = await generateChatName(text);
+        setCurrentSessionName(chatName);
+        console.log('Generated chat name:', chatName);
+      } catch (error) {
+        console.error('Error generating chat name:', error);
+        setCurrentSessionName('Legal Inquiry');
       }
+    }
 
     let currentResponse = "";
     let responseSources: SourceDocument[] = [];
@@ -309,9 +262,12 @@ export const ChatLayout = () => {
             return newMessages;
           });
           
-          // Auto-save after assistant responds
+          // Auto-save after assistant responds, but only for the first exchange
           if (autoSaveEnabled) {
-            setTimeout(() => autoSaveChat(), 500); // Delay to ensure all data is processed
+            const userMessageCount = messages.filter(m => m.role === 'user').length;
+            if (userMessageCount === 1) { // Only save after the first complete exchange
+              setTimeout(() => autoSaveChat(), 500); // Delay to ensure all data is processed
+            }
           }
 
           if (completeResponse?.metadata?.source_documents) {
@@ -330,6 +286,7 @@ export const ChatLayout = () => {
               source_number: doc.source_number || index + 1,
               filename: doc.original_file_name || doc.file_name, // Add filename for download
             }));
+            console.log('Processed source documents:', responseSources.map(s => ({ title: s.title, filename: s.filename })));
             setCurrentSources(responseSources);
           }
           setLoading(false);
@@ -398,47 +355,17 @@ export const ChatLayout = () => {
     if (!autoSaveEnabled || messages.length <= 1) return;
     
     try {
-      // Generate intelligent name if no session name provided
-      let displayName = sessionName;
-      if (!displayName) {
-        if (currentSessionName && !currentSessionName.startsWith('Auto_Save_')) {
-          // Keep existing intelligent name
-          displayName = currentSessionName;
-        } else {
-          // Generate new intelligent name
-          displayName = generateChatName(messages);
-        }
-      }
-      
-      // If we have a current chat ID, we're updating an existing chat
-      // If not, we're creating a new chat
-      const isUpdating = !!currentChatId;
-      
-      if (isUpdating) {
-        // Update existing chat - delete the old one and create new with same name
-        try {
-          // Get the list of saved chats to find the current one
-          const savedChats = await apiService.listSavedChats();
-          const currentChat = savedChats.find(chat => chat.filename === currentChatId);
-          
-          if (currentChat) {
-            // Delete the old chat file
-            await apiService.deleteSavedChat(currentChatId);
-          }
-        } catch (error) {
-          console.error('Error deleting old chat:', error);
-        }
-      }
+      // Use the current session name (generated by LLM) or provided name
+      const displayName = sessionName || currentSessionName || 'Legal Inquiry';
       
       // Save the chat (this will create a new file)
       const response = await apiService.saveChat(displayName);
       
       if (response.success) {
-        // Update current session name and chat ID
-        setCurrentSessionName(displayName);
-        setCurrentChatId(response.filename); // Store the new filename as current chat ID
+        // Update current chat ID
+        setCurrentChatId(response.filename);
         
-        console.log('Auto-saved chat:', displayName, 'as', response.filename, isUpdating ? '(updated)' : '(new)');
+        console.log('Auto-saved chat:', displayName, 'as', response.filename);
       }
     } catch (error) {
       console.error('Auto-save failed:', error);

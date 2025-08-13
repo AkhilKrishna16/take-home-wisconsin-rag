@@ -43,6 +43,8 @@ export const SourceCard = ({
       return;
     }
 
+    console.log('SourceCard: Starting download for filename:', filename);
+
     try {
       await apiService.downloadDocument(filename);
       toast({
@@ -50,9 +52,10 @@ export const SourceCard = ({
         description: `Downloading ${filename}`,
       });
     } catch (error) {
+      console.error('SourceCard: Download error:', error);
       toast({
         title: "Download Failed",
-        description: "Failed to download document",
+        description: error instanceof Error ? error.message : "Failed to download document",
         variant: "destructive",
       });
     }
