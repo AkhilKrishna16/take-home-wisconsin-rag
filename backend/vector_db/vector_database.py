@@ -184,6 +184,27 @@ class LegalVectorDatabase:
                     'processed_at': datetime.now().isoformat()
                 }
                 
+                # Add file name from chunk metadata
+                chunk_metadata = chunk.get('metadata', {})
+                if 'file_name' in chunk_metadata:
+                    metadata['file_name'] = chunk_metadata['file_name']
+                if 'original_file_name' in chunk_metadata:
+                    metadata['original_file_name'] = chunk_metadata['original_file_name']
+                
+                # Add section information from chunk metadata
+                if 'section_number' in chunk_metadata:
+                    metadata['section_number'] = chunk_metadata['section_number']
+                if 'section_title' in chunk_metadata:
+                    metadata['section_title'] = chunk_metadata['section_title']
+                
+                # Add section information from chunk's section object
+                chunk_section = chunk.get('section', {})
+                if isinstance(chunk_section, dict):
+                    if 'number' in chunk_section:
+                        metadata['section_number'] = chunk_section['number']
+                    if 'title' in chunk_section:
+                        metadata['section_title'] = chunk_section['title']
+                
                 # Add legal-specific metadata
                 chunk_metadata = chunk.get('metadata', {})
                 

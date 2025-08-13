@@ -1,0 +1,16 @@
+WISCONSIN STATUTES CHAT REPORT
+==================================================
+Generated: 2025-08-13 01:05:15
+
+Exchange 1:
+Question: What are Miranda rights and when must they be read?
+Answer: Miranda rights, also known as Miranda warnings, are a set of rights that must be read to individuals in police custody before they are interrogated. These rights originate from the U.S. Supreme Court case Miranda v. Arizona, 384 U.S. 436 (1966). The Miranda rights include:
+
+1. The right to remain silent.
+2. Anything the individual says can be used against them in court.
+3. The right to an attorney.
+4. If the individual cannot afford an attorney, one will be appointed to them.
+
+Miranda rights must be read to an individual when they are in police custody and are about to be interrogated. If law enforcement fails to provide Miranda warnings before a custodial interrogation, any statements made by the individual may be deemed inadmissible in court as a violation of their Fifth Amendment rights against self-incrimination.
+
+It's important to note that Miranda rights apply in the context of custodial interrogations and do not need to be read in all interactions with law enforcement, such as routine questioning or general investigative activities.

@@ -169,6 +169,14 @@ class DocumentProcessor:
         # Index in vector database if available
         if self.vector_db and chunks:
             document_id = f"{file_path.stem}_{processed_data['file_hash'][:8]}"
+            
+            # Add file name to each chunk's metadata
+            for chunk in chunks:
+                if 'metadata' not in chunk:
+                    chunk['metadata'] = {}
+                chunk['metadata']['file_name'] = file_path.name
+                chunk['metadata']['original_file_name'] = file_path.name
+            
             success = self.vector_db.index_document_chunks(chunks, document_id)
             if success:
                 processed_data['vector_db_indexed'] = True

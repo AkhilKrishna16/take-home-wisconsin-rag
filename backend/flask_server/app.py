@@ -15,6 +15,7 @@ import logging
 import threading
 import uuid
 from datetime import datetime
+from pathlib import Path
 from typing import Dict, List, Any, Optional
 from werkzeug.utils import secure_filename
 from flask import Flask, request, jsonify, Response, stream_template
@@ -27,6 +28,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from chatbot.langchain_rag_chatbot import LangChainLegalRAGChatbot
 from document_processing.document_processor import DocumentProcessor
 from vector_db.vector_database import LegalVectorDatabase
+from cross_reference_system import CrossReferenceSystem
 
 # Load environment variables from backend directory
 load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'))
@@ -55,9 +57,12 @@ vector_db = None
 # Background task tracking
 background_tasks = {}
 
+# Initialize cross-reference system
+cross_ref_system = None
+
 def initialize_components():
-    """Initialize chatbot and document processing components."""
-    global chatbot, document_processor, vector_db
+    """Initialize all system components."""
+    global chatbot, document_processor, vector_db, cross_ref_system
     
     try:
         # Check if required environment variables are set
@@ -77,14 +82,18 @@ def initialize_components():
         document_processor = DocumentProcessor(output_dir="processed_documents", use_vector_db=True)
         logger.info("✅ Document processor initialized")
         
-        # Initialize chatbot
+        # Initialize chatbot with streaming enabled
         chatbot = LangChainLegalRAGChatbot(
             model="gpt-3.5-turbo",
             max_tokens=800,
             temperature=0.3,
-            streaming=False  # We'll handle streaming manually
+            streaming=True  # Enable streaming for real-time responses
         )
         logger.info("✅ Chatbot initialized")
+        
+        # Initialize cross-reference system
+        cross_ref_system = CrossReferenceSystem()
+        logger.info("✅ Cross-reference system initialized")
         
         return True
         
@@ -232,14 +241,30 @@ def chat_stream():
         include_metadata = data.get('include_metadata', True)
         
         def generate_stream():
-            """Generate streaming response."""
+            """Generate streaming response with slower typing animation."""
+            import time
+            
             try:
                 for chunk in chatbot.ask_streaming(
                     question=question,
                     jurisdiction=jurisdiction,
                     include_metadata=include_metadata
                 ):
-                    yield f"data: {json.dumps(chunk)}\n\n"
+                    if chunk['type'] == 'content':
+                        # Add slower typing animation for content chunks
+                        content = chunk['content']
+                        for char in content:
+                            char_chunk = {
+                                'type': 'content',
+                                'content': char,
+                                'full_answer': chunk.get('full_answer', '')
+                            }
+                            yield f"data: {json.dumps(char_chunk)}\n\n"
+                            time.sleep(0.03)  # 30ms delay between characters for slower typing
+                    else:
+                        # For non-content chunks (complete, error, etc.), send immediately
+                        yield f"data: {json.dumps(chunk)}\n\n"
+                        
             except Exception as e:
                 error_chunk = {
                     'type': 'error',
@@ -526,6 +551,330 @@ def clear_chat_history():
         logger.error(f"Error clearing chat history: {e}")
         return format_error_response(f"Error clearing chat history: {str(e)}", 500)
 
+@app.route('/api/chat/save', methods=['POST'])
+def save_chat():
+    """Save current chat session."""
+    
+    if not chatbot:
+        return format_error_response("Chatbot not initialized", 500)
+    
+    try:
+        data = request.get_json()
+        session_name = data.get('session_name', f"Chat_{datetime.now().strftime('%Y%m%d_%H%M%S')}")
+        
+        # Get current conversation history
+        history = chatbot.get_conversation_history()
+        
+        # Save to file
+        chat_data = {
+            'session_name': session_name,
+            'created_at': datetime.now().isoformat(),
+            'history': history,
+            'total_exchanges': len(history)
+        }
+        
+        # Create chats directory if it doesn't exist
+        chats_dir = Path('saved_chats')
+        chats_dir.mkdir(exist_ok=True)
+        
+        # Save to JSON file
+        filename = f"{session_name.replace(' ', '_')}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+        filepath = chats_dir / filename
+        
+        with open(filepath, 'w') as f:
+            json.dump(chat_data, f, indent=2)
+        
+        logger.info(f"Chat saved: {filepath}")
+        
+        return format_success_response({
+            'session_name': session_name,
+            'filename': filename,
+            'total_exchanges': len(history),
+            'saved_at': datetime.now().isoformat()
+        }, f"Chat session '{session_name}' saved successfully")
+        
+    except Exception as e:
+        logger.error(f"Error saving chat: {e}")
+        return format_error_response(f"Error saving chat: {str(e)}", 500)
+
+@app.route('/api/chat/export', methods=['POST'])
+def export_chat():
+    """Export chat as report."""
+    
+    if not chatbot:
+        return format_error_response("Chatbot not initialized", 500)
+    
+    try:
+        data = request.get_json()
+        export_format = data.get('format', 'pdf')  # pdf, docx, txt
+        include_sources = data.get('include_sources', True)
+        
+        # Get current conversation history
+        history = chatbot.get_conversation_history()
+        
+        if not history:
+            return format_error_response("No chat history to export", 400)
+        
+        # Generate report content
+        report_content = generate_report_content(history, include_sources)
+        
+        # Create exports directory if it doesn't exist
+        exports_dir = Path('exports')
+        exports_dir.mkdir(exist_ok=True)
+        
+        # Generate filename
+        filename = f"Chat_Report_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        
+        if export_format == 'txt':
+            filepath = exports_dir / f"{filename}.txt"
+            with open(filepath, 'w') as f:
+                f.write(report_content)
+        elif export_format == 'json':
+            filepath = exports_dir / f"{filename}.json"
+            with open(filepath, 'w') as f:
+                json.dump({
+                    'exported_at': datetime.now().isoformat(),
+                    'format': export_format,
+                    'include_sources': include_sources,
+                    'content': report_content,
+                    'history': history
+                }, f, indent=2)
+        else:
+            # For PDF/DOCX, return the content for frontend to handle
+            filepath = None
+        
+        return format_success_response({
+            'filename': filepath.name if filepath else f"{filename}.{export_format}",
+            'content': report_content,  # Always return content for frontend to handle
+            'format': export_format,
+            'exported_at': datetime.now().isoformat()
+        }, f"Chat exported successfully as {export_format.upper()}")
+        
+    except Exception as e:
+        logger.error(f"Error exporting chat: {e}")
+        return format_error_response(f"Error exporting chat: {str(e)}", 500)
+
+@app.route('/api/chat/list-saved', methods=['GET'])
+def list_saved_chats():
+    """List all saved chat sessions."""
+    
+    try:
+        chats_dir = Path('saved_chats')
+        if not chats_dir.exists():
+            return format_success_response({
+                'chats': [],
+                'total_chats': 0
+            }, "No saved chats found")
+        
+        chats = []
+        for file_path in chats_dir.glob('*.json'):
+            try:
+                with open(file_path, 'r') as f:
+                    chat_data = json.load(f)
+                    chats.append({
+                        'session_name': chat_data.get('session_name', 'Unnamed Session'),
+                        'created_at': chat_data.get('created_at', ''),
+                        'total_exchanges': chat_data.get('total_exchanges', 0),
+                        'filename': file_path.name
+                    })
+            except Exception as e:
+                logger.error(f"Error reading chat file {file_path}: {e}")
+                continue
+        
+        # Sort by creation date (newest first)
+        chats.sort(key=lambda x: x['created_at'], reverse=True)
+        
+        return format_success_response({
+            'chats': chats,
+            'total_chats': len(chats)
+        }, f"Found {len(chats)} saved chat sessions")
+        
+    except Exception as e:
+        logger.error(f"Error listing saved chats: {e}")
+        return format_error_response(f"Error listing saved chats: {str(e)}", 500)
+
+@app.route('/api/chat/load/<filename>', methods=['GET'])
+def load_saved_chat(filename):
+    """Load a specific saved chat session."""
+    
+    try:
+        # Validate filename to prevent directory traversal
+        if '..' in filename or '/' in filename:
+            return format_error_response("Invalid filename", 400)
+        
+        file_path = Path('saved_chats') / filename
+        if not file_path.exists():
+            return format_error_response("Chat session not found", 404)
+        
+        with open(file_path, 'r') as f:
+            chat_data = json.load(f)
+        
+        return format_success_response(chat_data, f"Chat session '{chat_data.get('session_name', 'Unnamed')}' loaded successfully")
+        
+    except Exception as e:
+        logger.error(f"Error loading saved chat {filename}: {e}")
+        return format_error_response(f"Error loading saved chat: {str(e)}", 500)
+
+@app.route('/api/chat/delete/<filename>', methods=['DELETE'])
+def delete_saved_chat(filename):
+    """Delete a specific saved chat session."""
+    
+    try:
+        # Validate filename to prevent directory traversal
+        if '..' in filename or '/' in filename:
+            return format_error_response("Invalid filename", 400)
+        
+        file_path = Path('saved_chats') / filename
+        if not file_path.exists():
+            return format_error_response("Chat session not found", 404)
+        
+        # Load chat data for response
+        with open(file_path, 'r') as f:
+            chat_data = json.load(f)
+        
+        # Delete the file
+        file_path.unlink()
+        
+        return format_success_response({
+            'deleted_filename': filename,
+            'session_name': chat_data.get('session_name', 'Unnamed Session')
+        }, f"Chat session '{chat_data.get('session_name', 'Unnamed')}' deleted successfully")
+        
+    except Exception as e:
+        logger.error(f"Error deleting saved chat {filename}: {e}")
+        return format_error_response(f"Error deleting saved chat: {str(e)}", 500)
+
+@app.route('/api/chat/quick-queries', methods=['GET'])
+def get_quick_queries():
+    """Get predefined quick queries."""
+    
+    quick_queries = [
+        {
+            'id': 'miranda_rights',
+            'title': 'Miranda Rights',
+            'question': 'What are Miranda rights and when must they be read?',
+            'category': 'Criminal Law',
+            'icon': 'shield'
+        },
+        {
+            'id': 'traffic_stops',
+            'title': 'Traffic Stops',
+            'question': 'What are the legal requirements for traffic stops in Wisconsin?',
+            'category': 'Traffic Law',
+            'icon': 'car'
+        },
+        {
+            'id': 'search_warrants',
+            'title': 'Search Warrants',
+            'question': 'What are the requirements for obtaining and executing search warrants?',
+            'category': 'Criminal Law',
+            'icon': 'search'
+        },
+        {
+            'id': 'use_of_force',
+            'title': 'Use of Force',
+            'question': 'What are the legal standards for use of force by law enforcement?',
+            'category': 'Law Enforcement',
+            'icon': 'alert-triangle'
+        },
+        {
+            'id': 'evidence_admissibility',
+            'title': 'Evidence Admissibility',
+            'question': 'What are the rules for evidence admissibility in Wisconsin courts?',
+            'category': 'Criminal Law',
+            'icon': 'file-text'
+        },
+        {
+            'id': 'juvenile_law',
+            'title': 'Juvenile Law',
+            'question': 'What are the special procedures for juvenile cases in Wisconsin?',
+            'category': 'Juvenile Law',
+            'icon': 'users'
+        }
+    ]
+    
+    return format_success_response({
+        'queries': quick_queries,
+        'total_queries': len(quick_queries)
+    }, "Quick queries retrieved successfully")
+
+def generate_report_content(history, include_sources=True):
+    """Generate report content from chat history."""
+    
+    report_lines = []
+    report_lines.append("WISCONSIN STATUTES CHAT REPORT")
+    report_lines.append("=" * 50)
+    report_lines.append(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    report_lines.append("")
+    
+    for i, exchange in enumerate(history, 1):
+        report_lines.append(f"Exchange {i}:")
+        report_lines.append(f"Question: {exchange.get('question', 'N/A')}")
+        report_lines.append(f"Answer: {exchange.get('answer', 'N/A')}")
+        
+        if include_sources and 'sources' in exchange:
+            report_lines.append("Sources:")
+            for source in exchange['sources']:
+                report_lines.append(f"  - {source.get('title', 'Unknown')} (Section: {source.get('section', 'Unknown')})")
+        
+        report_lines.append("")
+    
+    return "\n".join(report_lines)
+
+@app.route('/api/chat/sources', methods=['POST'])
+def get_chat_sources():
+    """Get source documents for a specific question."""
+    
+    if not chatbot or not vector_db:
+        return format_error_response("Chatbot or vector database not initialized", 500)
+    
+    try:
+        data = request.get_json()
+        
+        if not data or 'question' not in data:
+            return format_error_response("Question is required")
+        
+        question = data['question']
+        jurisdiction = data.get('jurisdiction', 'federal')
+        max_results = data.get('max_results', 5)
+        
+        # Use the RAG system to get relevant sources
+        rag_response = chatbot.rag_system.ask_question(
+            question=question,
+            jurisdiction=jurisdiction,
+            max_results=max_results
+        )
+        
+        # Format source documents
+        sources = []
+        if 'source_documents' in rag_response:
+            for i, doc in enumerate(rag_response['source_documents'], 1):
+                source = {
+                    'id': doc.get('id', f'source_{i}'),
+                    'title': doc.get('file_name', 'Unknown Document'),
+                    'type': doc.get('document_type', 'Unknown'),
+                    'jurisdiction': doc.get('jurisdiction', 'Unknown'),
+                    'status': doc.get('law_status', 'Unknown'),
+                    'score': doc.get('relevance_score', 0.0),
+                    'section': doc.get('section', 'Unknown'),
+                    'citations': doc.get('citations', []),
+                    'content_preview': doc.get('content_preview', ''),
+                    'url': doc.get('url', '#'),
+                    'source_number': i
+                }
+                sources.append(source)
+        
+        return format_success_response({
+            'question': question,
+            'sources': sources,
+            'total_sources': len(sources),
+            'search_quality': rag_response.get('search_quality', {})
+        }, "Source documents retrieved successfully")
+        
+    except Exception as e:
+        logger.error(f"Error getting chat sources: {e}")
+        return format_error_response(f"Error retrieving source documents: {str(e)}", 500)
+
 @app.route('/api/stats', methods=['GET'])
 def get_stats():
     """Get system statistics."""
@@ -589,6 +938,127 @@ try:
 except Exception as e:
     logger.warning(f"⚠️ Component initialization failed: {e}")
     logger.warning("Server will start but some features may not work properly")
+
+@app.route('/api/cross-reference/find', methods=['POST'])
+def find_cross_references():
+    """Find cross-references for a document or query."""
+    try:
+        data = request.get_json()
+        document_id = data.get('document_id')
+        content = data.get('content')
+        query = data.get('query')
+        threshold = data.get('threshold', 0.3)
+        
+        if not content and not query:
+            return jsonify({'error': 'Either content or query must be provided'}), 400
+        
+        if content:
+            # Find cross-references for document content
+            cross_refs = cross_ref_system.find_cross_references(document_id, content, threshold)
+        else:
+            # Find suggestions based on query
+            cross_refs = cross_ref_system.suggest_related_content(query, document_id)
+        
+        return jsonify({
+            'success': True,
+            'cross_references': cross_refs,
+            'count': len(cross_refs)
+        })
+        
+    except Exception as e:
+        logger.error(f"Error finding cross-references: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/cross-reference/related/<document_id>', methods=['GET'])
+def get_related_documents(document_id):
+    """Get related documents for a specific document."""
+    try:
+        max_results = request.args.get('max_results', 10, type=int)
+        related_docs = cross_ref_system.get_related_documents(document_id, max_results)
+        
+        return jsonify({
+            'success': True,
+            'document_id': document_id,
+            'related_documents': related_docs,
+            'count': len(related_docs)
+        })
+        
+    except Exception as e:
+        logger.error(f"Error getting related documents: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/cross-reference/patterns', methods=['GET'])
+def analyze_patterns():
+    """Analyze patterns across all documents."""
+    try:
+        document_ids = request.args.get('document_ids')
+        if document_ids:
+            document_ids = document_ids.split(',')
+        
+        patterns = cross_ref_system.analyze_patterns(document_ids)
+        
+        return jsonify({
+            'success': True,
+            'patterns': patterns
+        })
+        
+    except Exception as e:
+        logger.error(f"Error analyzing patterns: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/cross-reference/relationship-map/<document_id>', methods=['GET'])
+def generate_relationship_map(document_id):
+    """Generate a relationship map for a document."""
+    try:
+        depth = request.args.get('depth', 2, type=int)
+        relationship_map = cross_ref_system.generate_relationship_map(document_id, depth)
+        
+        return jsonify({
+            'success': True,
+            'relationship_map': relationship_map
+        })
+        
+    except Exception as e:
+        logger.error(f"Error generating relationship map: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/cross-reference/suggestions', methods=['POST'])
+def get_suggestions():
+    """Get intelligent suggestions for related content."""
+    try:
+        data = request.get_json()
+        query = data.get('query')
+        document_id = data.get('document_id')
+        
+        if not query:
+            return jsonify({'error': 'Query is required'}), 400
+        
+        suggestions = cross_ref_system.suggest_related_content(query, document_id)
+        
+        return jsonify({
+            'success': True,
+            'suggestions': suggestions,
+            'count': len(suggestions)
+        })
+        
+    except Exception as e:
+        logger.error(f"Error getting suggestions: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/cross-reference/update', methods=['POST'])
+def update_cross_references():
+    """Update all cross-references in the system."""
+    try:
+        cross_ref_system.update_cross_references()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Cross-references updated successfully'
+        })
+        
+    except Exception as e:
+        logger.error(f"Error updating cross-references: {e}")
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     # Initialize components

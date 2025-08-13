@@ -530,12 +530,25 @@ class HybridSearchEngine:
         """Determine the jurisdiction of a document."""
         content = metadata.get('content', '').lower()
         
-        if any(term in content for term in ['federal', 'u.s.', 'united states', 'congress']):
-            return 'federal'
-        elif any(term in content for term in ['state', 'local', 'municipal']):
+        # Check for Wisconsin-specific indicators first
+        wisconsin_indicators = [
+            'wisconsin', 'state of wisconsin', 'wi statutes', 'wisconsin statutes',
+            'state sovereignty', 'state jurisdiction', 'chapter 1 sovereignty'
+        ]
+        if any(indicator in content for indicator in wisconsin_indicators):
             return 'state'
-        else:
-            return 'unknown'
+        
+        # Check for federal indicators
+        federal_indicators = ['federal', 'u.s.', 'united states', 'congress', 'supreme court']
+        if any(term in content for term in federal_indicators):
+            return 'federal'
+        
+        # Check for general state indicators
+        state_indicators = ['state', 'local', 'municipal', 'county']
+        if any(term in content for term in state_indicators):
+            return 'state'
+        
+        return 'unknown'
     
     def _determine_law_status(self, metadata: Dict[str, Any]) -> str:
         """Determine if a law is current, superseded, or pending."""

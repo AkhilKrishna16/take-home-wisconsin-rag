@@ -128,19 +128,15 @@ Your task is to provide accurate, helpful answers based on the provided legal co
 6. **Limitations**: If the context doesn't contain sufficient information, acknowledge this clearly
 
 **SAFETY AND ACCURACY REQUIREMENTS:**
-- **Confidence Scoring**: Assess your confidence level (0-1) based on context quality
 - **Source Citations**: Always include specific legal authorities and citations
 - **Jurisdiction Warnings**: Flag if information is jurisdiction-specific
 - **Outdated Information**: Warn if legal information may be outdated
-- **Legal Disclaimers**: Include appropriate disclaimers for legal advice vs. information
 - **Use of Force Care**: Handle use of force queries with extreme care and appropriate warnings
 
 **RESPONSE FORMAT:**
 1. Main answer with citations
-2. Confidence assessment
-3. Jurisdiction and currency warnings (if applicable)
-4. Legal disclaimer
-5. Additional safety notes (if use of force related)
+2. Jurisdiction and currency warnings (if applicable)
+3. Additional safety notes (if use of force related)
 
 Legal Context:
 {context}
@@ -162,17 +158,13 @@ Focus on:
 4. **Jurisdiction**: Clarify federal vs. state authority where relevant
 
 **SAFETY AND ACCURACY REQUIREMENTS:**
-- **Confidence Scoring**: Assess your confidence level (0-1) based on citation quality
 - **Source Citations**: Always include specific legal authorities and citations
 - **Jurisdiction Warnings**: Flag if information is jurisdiction-specific
 - **Outdated Information**: Warn if legal information may be outdated
-- **Legal Disclaimers**: Include appropriate disclaimers for legal advice vs. information
 
 **RESPONSE FORMAT:**
 1. Citation analysis with specific authorities
-2. Confidence assessment
-3. Jurisdiction and currency warnings (if applicable)
-4. Legal disclaimer
+2. Jurisdiction and currency warnings (if applicable)
 
 Legal Context:
 {context}
@@ -188,17 +180,13 @@ Search Quality Metrics:
             ("system", """You are continuing a legal research conversation. Consider the previous context and provide a coherent response that builds on earlier information.
 
 **SAFETY AND ACCURACY REQUIREMENTS:**
-- **Confidence Scoring**: Assess your confidence level (0-1) based on context quality
 - **Source Citations**: Always include specific legal authorities and citations
 - **Jurisdiction Warnings**: Flag if information is jurisdiction-specific
 - **Outdated Information**: Warn if legal information may be outdated
-- **Legal Disclaimers**: Include appropriate disclaimers for legal advice vs. information
 
 **RESPONSE FORMAT:**
 1. Main answer with citations
-2. Confidence assessment
-3. Jurisdiction and currency warnings (if applicable)
-4. Legal disclaimer
+2. Jurisdiction and currency warnings (if applicable)
 
 Legal Context:
 {context}
@@ -299,17 +287,92 @@ Search Quality Metrics:
         source_documents = []
         
         for i, result in enumerate(rag_response['search_results'][:5], 1):  # Top 5 results
+            # Extract file name from metadata
+            metadata = getattr(result, 'metadata', {})
+            file_name = metadata.get('file_name', 'Unknown')
+            
+            # If file_name is still Unknown, try other metadata fields
+            if file_name == 'Unknown':
+                # Try different possible metadata fields for file name
+                file_name = (
+                    metadata.get('original_file_name') or
+                    metadata.get('document_name') or
+                    metadata.get('title') or
+                    metadata.get('module_title') or
+                    'Unknown'
+                )
+            
+            # Extract section information with better detection
+            section = 'Unknown'
+            
+            # First priority: Use section information from document processing
+            if metadata.get('section_number'):
+                section = metadata.get('section_number')
+            elif metadata.get('section_title'):
+                section = metadata.get('section_title')
+            elif metadata.get('section_type'):
+                section = metadata.get('section_type')
+            else:
+                # Fallback: Try to extract section from content
+                content = result.content[:200]  # Look at first 200 chars for better coverage
+                import re
+                
+                # Look for statute numbers like "1.04", "1.05", etc.
+                # Find ALL statute numbers in the content
+                statute_matches = re.findall(r'(\d+\.\d+[A-Z]*)', content)
+                
+                if statute_matches:
+                    # If multiple statute numbers found, try to determine the most relevant one
+                    if len(statute_matches) > 1:
+                        # Look for the statute number that appears at the beginning of a sentence or line
+                        # This is more likely to be the main section being discussed
+                        for match in statute_matches:
+                            # Check if this statute number appears at the start of a sentence or line
+                            if re.search(rf'^\s*{re.escape(match)}|\.\s*{re.escape(match)}|\(\d+\)\s*{re.escape(match)}', content):
+                                section = match
+                                break
+                        else:
+                            # If no clear pattern, use the first one
+                            section = statute_matches[0]
+                    else:
+                        # Only one statute number found
+                        section = statute_matches[0]
+                else:
+                    # Fallback to chapter patterns
+                    chapter_match = re.search(r'CHAPTER\s+(\d+[A-Z]*)', content, re.IGNORECASE)
+                    section_match = re.search(r'SECTION\s+(\d+\.\d+)', content, re.IGNORECASE)
+                    if chapter_match:
+                        section = f"CHAPTER {chapter_match.group(1)}"
+                    elif section_match:
+                        section = f"Section {section_match.group(1)}"
+            
+            # Determine jurisdiction with better detection
+            jurisdiction = getattr(result, 'jurisdiction', 'Unknown')
+            if jurisdiction == 'Unknown' or jurisdiction == 'federal':
+                # Check content for Wisconsin indicators
+                content_lower = result.content.lower()
+                if any(wisconsin_indicator in content_lower for wisconsin_indicator in [
+                    'wisconsin', 'state of wisconsin', 'wi statutes', 'wisconsin statutes',
+                    'state sovereignty', 'state jurisdiction'
+                ]):
+                    jurisdiction = 'state'
+                elif any(federal_indicator in content_lower for federal_indicator in [
+                    'united states', 'u.s.', 'federal', 'congress', 'supreme court'
+                ]):
+                    jurisdiction = 'federal'
+            
             doc_info = {
                 'source_number': i,
                 'relevance_score': result.score,
                 'document_type': getattr(result, 'document_type', 'Unknown'),
-                'jurisdiction': getattr(result, 'jurisdiction', 'Unknown'),
+                'jurisdiction': jurisdiction,
                 'law_status': getattr(result, 'law_status', 'Unknown'),
                 'content_preview': result.content[:200] + "..." if len(result.content) > 200 else result.content,
                 'citations': getattr(result, 'citation_chain', []),
-                'dates': getattr(result, 'dates', []),
-                'file_name': getattr(result, 'file_name', 'Unknown'),
-                'section': getattr(result, 'section', 'Unknown')
+                'dates': metadata.get('dates', []),
+                'file_name': file_name,
+                'module_title': metadata.get('module_title', 'Unknown'),
+                'section': section
             }
             source_documents.append(doc_info)
         
@@ -404,7 +467,7 @@ Search Quality Metrics:
             'jurisdiction_warning': False,
             'outdated_warning': False,
             'low_confidence_warning': False,
-            'legal_disclaimer': True  # Always include legal disclaimer
+            'legal_disclaimer': False  # Disabled for law enforcement use
         }
         
         # Check for use of force queries
@@ -647,6 +710,9 @@ Search Quality Metrics:
             
             # Add metadata if requested
             if include_metadata:
+                # Extract source documents
+                source_documents = self._extract_source_documents(rag_response)
+                
                 response['metadata'] = {
                     'search_quality': {
                         'top_score': rag_response['top_score'],
@@ -656,6 +722,7 @@ Search Quality Metrics:
                     'citations_found': rag_response['citation_chain'],
                     'context_length': len(context),
                     'jurisdiction': rag_response['jurisdiction'],
+                    'source_documents': source_documents,  # Add source documents
                     'langchain_components': {
                         'prompt_type': prompt_type,
                         'chat_history_length': len(chat_history)
