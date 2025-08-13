@@ -1,0 +1,63 @@
+{
+  "file_path": "/var/folders/nq/lwbr1v0j6j58jstbp6bc7_0c0000gn/T/tmpwu0fdajp/sample_training.txt",
+  "file_name": "sample_training.txt",
+  "file_type": "text",
+  "document_type": "training",
+  "processed_at": "2025-08-12T16:16:43.666053",
+  "file_hash": "7aaf97b165ee391fa6078b9a99deb3e910da9bd20c8d8699b41d1c5d627cd965",
+  "metadata": {
+    "file_size": 600,
+    "created_date": "2025-08-12T16:16:20.551888",
+    "modified_date": "2025-08-12T16:16:20.551888"
+  },
+  "content": "\n    TRAINING MODULE 1\n    Introduction to Digital Forensics\n    \n    Course Objective:\n    This module provides an overview of digital forensics principles and methodologies used in criminal investigations.\n    \n    Learning Outcomes:\n    Upon completion of this module, participants will be able to:\n    1. Define digital forensics and its role in criminal investigations\n    2. Identify different types of digital evidence\n    3. Understand basic forensic principles and methodologies\n    \n    KEY TERMS:\n    DIGITAL FORENSICS\n    EVIDENCE PRESERVATION\n    CHAIN OF CUSTODY\n    FORENSIC TOOLS\n    ",
+  "summary": "\n    TRAINING MODULE 1\n    Introduction to Digital Forensics\n    \n    Course Objective:\n    This module provides an overview of digital forensics principles and methodologies used in criminal investigations \n    \n    Learning Outcomes:\n    Upon completion of this module, participants will be able to:\n    1  Define digital forensics and its role in criminal investigations\n    2  Identify different types of digital evidence\n    3",
+  "key_entities": {
+    "dates": [],
+    "names": [],
+    "organizations": [],
+    "locations": [],
+    "references": []
+  },
+  "structure": {
+    "sections": [],
+    "headings": [
+      "TRAINING MODULE 1",
+      "KEY TERMS:",
+      "DIGITAL FORENSICS",
+      "EVIDENCE PRESERVATION",
+      "CHAIN OF CUSTODY",
+      "FORENSIC TOOLS"
+    ],
+    "paragraphs": 1,
+    "word_count": 71
+  },
+  "tags": [
+    "education",
+    "training",
+    "learning"
+  ],
+  "chunks": [
+    {
+      "content": "TRAINING MODULE 1\nIntroduction to Digital Forensics\nCourse Objective:\nThis module provides an overview of digital forensics principles and methodologies used in criminal investigations.\nLearning Outcomes:\nUpon completion of this module, participants will be able to:\n1. Define digital forensics and its role in criminal investigations\n2. Identify different types of digital evidence\n3. Understand basic forensic principles and methodologies\nKEY TERMS:\nDIGITAL FORENSICS\nEVIDENCE PRESERVATION\nCHAIN OF CUSTODY\nFORENSIC TOOLS",
+      "metadata": {
+        "module_title": "",
+        "learning_objectives": [
+          "Course Objective:",
+          "Learning Outcomes:"
+        ],
+        "key_terms": [
+          "DIGITAL FORENSICS",
+          "EVIDENCE PRESERVATION",
+          "CHAIN OF CUSTODY",
+          "FORENSIC TOOLS"
+        ]
+      },
+      "chunk_type": "training_module",
+      "module": null,
+      "start_line": 4,
+      "end_line": 18
+    }
+  ],
+  "chunk_count": 1
+}

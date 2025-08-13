@@ -1,0 +1,88 @@
+{
+  "file_path": "/var/folders/nq/lwbr1v0j6j58jstbp6bc7_0c0000gn/T/tmpwu0fdajp/sample_case_law.txt",
+  "file_name": "sample_case_law.txt",
+  "file_type": "text",
+  "document_type": "case_law",
+  "processed_at": "2025-08-12T16:16:38.420034",
+  "file_hash": "303d0ac01abee92ab36b42202906f06646f93bd6e2224133e70774283f3fbad4",
+  "metadata": {
+    "file_size": 1018,
+    "created_date": "2025-08-12T16:16:20.551695",
+    "modified_date": "2025-08-12T16:16:20.551695"
+  },
+  "content": "\n    SUPREME COURT OF THE UNITED STATES\n    Case No. 21-1234\n    \n    JOHN DOE, PETITIONER\n    v.\n    JANE SMITH, RESPONDENT\n    \n    OPINION OF THE COURT\n    \n    This case presents the question of whether the Fourth Amendment's protection extends to digital communications under 18 U.S.C. 2703.\n    \n    The petitioner argues that his constitutional rights were violated when law enforcement accessed his email communications without a warrant, citing Smith v. Maryland, 442 U.S. 735 (1979).\n    \n    The court must consider the application of 42 U.S.C. 1983 in this context, as well as the precedent set by Carpenter v. United States, 585 U.S. 296 (2018).\n    \n    Filed: January 15, 2024\n    \n    DISSENT\n    \n    I respectfully dissent from the majority opinion. The interpretation of 18 U.S.C. 2703 is inconsistent with our precedent in United States v. Jones, 565 U.S. 400 (2012).\n    \n    The Fourth Amendment analysis should follow the framework established in Katz v. United States, 389 U.S. 347 (1967).\n    ",
+  "summary": "\n    SUPREME COURT OF THE UNITED STATES\n    Case No  21-1234\n    \n    JOHN DOE, PETITIONER\n    v \n    JANE SMITH, RESPONDENT\n    \n    OPINION OF THE COURT\n    \n    This case presents the question of whether the Fourth Amendment's protection extends to digital communications under 18 U",
+  "key_entities": {
+    "dates": [
+      "January 15, 2024"
+    ],
+    "names": [],
+    "organizations": [],
+    "locations": [],
+    "references": [
+      "Case No. 21-1234"
+    ]
+  },
+  "structure": {
+    "sections": [],
+    "headings": [
+      "SUPREME COURT OF THE UNITED STATES",
+      "JOHN DOE, PETITIONER",
+      "JANE SMITH, RESPONDENT",
+      "OPINION OF THE COURT",
+      "DISSENT"
+    ],
+    "paragraphs": 1,
+    "word_count": 144
+  },
+  "tags": [
+    "court",
+    "legal",
+    "case_law",
+    "judgment"
+  ],
+  "chunks": [
+    {
+      "content": "SUPREME COURT OF THE UNITED STATES\nCase No. 21-1234\nJOHN DOE, PETITIONER\nv.\nJANE SMITH, RESPONDENT",
+      "metadata": {
+        "section_type": "",
+        "statute_numbers": [],
+        "case_citations": [],
+        "dates": []
+      },
+      "chunk_type": "case_law_section",
+      "start_line": 2,
+      "end_line": 7
+    },
+    {
+      "content": "OPINION OF THE COURT\nThis case presents the question of whether the Fourth Amendment's protection extends to digital communications under 18 U.S.C. 2703.\nThe petitioner argues that his constitutional rights were violated when law enforcement accessed his email communications without a warrant, citing Smith v. Maryland, 442 U.S. 735 (1979).\nThe court must consider the application of 42 U.S.C. 1983 in this context, as well as the precedent set by Carpenter v. United States, 585 U.S. 296 (2018).\nFiled: January 15, 2024",
+      "metadata": {
+        "section_type": "OPINION OF THE COURT",
+        "statute_numbers": [
+          "18 U.S.C. 2703",
+          "42 U.S.C. 1983"
+        ],
+        "case_citations": [],
+        "dates": []
+      },
+      "chunk_type": "case_law_section",
+      "start_line": 12,
+      "end_line": 17
+    },
+    {
+      "content": "DISSENT\nI respectfully dissent from the majority opinion. The interpretation of 18 U.S.C. 2703 is inconsistent with our precedent in United States v. Jones, 565 U.S. 400 (2012).\nThe Fourth Amendment analysis should follow the framework established in Katz v. United States, 389 U.S. 347 (1967).",
+      "metadata": {
+        "section_type": "DISSENT",
+        "statute_numbers": [
+          "18 U.S.C. 2703"
+        ],
+        "case_citations": [],
+        "dates": []
+      },
+      "chunk_type": "case_law_section",
+      "start_line": 20,
+      "end_line": 23
+    }
+  ],
+  "chunk_count": 3
+}

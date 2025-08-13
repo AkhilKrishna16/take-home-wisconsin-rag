@@ -1,0 +1,44 @@
+{
+  "file_path": "uploads/f59cf5f9-5d3d-4909-9c81-4dcc08b88693_test_document.txt",
+  "file_name": "f59cf5f9-5d3d-4909-9c81-4dcc08b88693_test_document.txt",
+  "file_type": "text",
+  "document_type": "Federal Statute",
+  "processed_at": "2025-08-12T22:54:41.866572",
+  "file_hash": "7ad599b6d2d978082a1ff107332f6e94bc717409aac8a6f19d34ccac6c72ed0a",
+  "metadata": {
+    "file_size": 974,
+    "created_date": "2025-08-12T22:54:41.837140",
+    "modified_date": "2025-08-12T22:54:41.837140"
+  },
+  "content": "\n    18 U.S.C. 2703 - Required disclosure of customer communications or records\n    \n    (a) Contents of wire or electronic communications in electronic storage\n    \n    A governmental entity may require the disclosure by a provider of electronic communication service of the contents of a wire or electronic communication, that is in electronic storage in an electronic communications system for one hundred and eighty days or less, only pursuant to a warrant issued using the procedures described in the Federal Rules of Criminal Procedure (or, in the case of a State court, issued using State warrant procedures) by a court of competent jurisdiction.\n    \n    (b) Contents of wire or electronic communications in a remote computing service\n    \n    A governmental entity may require a provider of remote computing service to disclose the contents of any wire or electronic communication to which this paragraph is made applicable by paragraph (2) of this subsection.\n    ",
+  "summary": "\n    18 U.S.C. 2703 - Required disclosure of customer communications or records\n    \n    (a) Contents of wire or electronic communications in electronic storage\n    \n    A governmental entity may require the disclosure by a provider of electronic communication service of the contents of a wire or electronic communication, that is in electronic storage in an electronic communications system for one hundred and eighty days or less, only pursuant to a warrant issued using the procedures described in the Federal Rules of Criminal Procedure (or, in the case of a State court, issued using State warrant procedures) by a court of competent jurisdiction. (b) Contents of wire or electronic communications in a remote computing service\n    \n    A governmental entity may require a provider of remote computing service to disclose the contents of any wire or electronic communication to which this paragraph is made applicable by paragraph (2) of this subsection.",
+  "key_entities": {
+    "dates": [],
+    "names": [],
+    "organizations": [],
+    "locations": [],
+    "references": []
+  },
+  "structure": {
+    "sections": [],
+    "headings": [],
+    "paragraphs": 1,
+    "word_count": 144
+  },
+  "tags": [
+    "Federal Statute"
+  ],
+  "chunks": [
+    {
+      "content": "18 U.S.C.. 2703 - Required disclosure of customer communications or records\n    \n    (a) Contents of wire or electronic communications in electronic storage\n    \n    A governmental entity may require the disclosure by a provider of electronic communication service of the contents of a wire or electronic communication, that is in electronic storage in an electronic communications system for one hundred and eighty days or less, only pursuant to a warrant issued using the procedures described in the Federal Rules of Criminal Procedure (or, in the case of a State court, issued using State warrant procedures) by a court of competent jurisdiction.. (b) Contents of wire or electronic communications in a remote computing service\n    \n    A governmental entity may require a provider of remote computing service to disclose the contents of any wire or electronic communication to which this paragraph is made applicable by paragraph (2) of this subsection..",
+      "metadata": {
+        "statute_numbers": [],
+        "dates": []
+      },
+      "chunk_type": "general",
+      "start_line": 0,
+      "end_line": 0
+    }
+  ],
+  "chunk_count": 1
+}
