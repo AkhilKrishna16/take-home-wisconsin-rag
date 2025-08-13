@@ -145,7 +145,7 @@
   .story-link::after { content: ""; position: absolute; left: 0; bottom: 0; height: 2px; width: 100%; transform: scaleX(0); transform-origin: 100% 100%; background: hsl(var(--primary)); transition: transform .3s ease; }
   .story-link:hover::after { transform: scaleX(1); transform-origin: 0 100%; }
 
-  .glass-panel { background: var(--glass-bg); backdrop-filter: blur(10px); border: 1px solid var(--glass-border); }
+  .glass-panel { background: var(--glass-bg); backdrop-filter: blur(12px); border: 1px solid var(--glass-border); }
   .shadow-elegant { box-shadow: var(--shadow-elegant); }
   .shadow-glow { box-shadow: var(--shadow-glow); }
 

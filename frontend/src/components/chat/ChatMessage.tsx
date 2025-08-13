@@ -17,7 +17,7 @@ export const ChatMessage = ({ role, children, sources, metadata }: ChatMessagePr
   const isUser = role === "user";
   return (
     <div className={cn("flex w-full", isUser ? "justify-end" : "justify-start")} role="article" aria-label={isUser ? "User message" : "Assistant message"}>
-      <div className={cn("max-w-[85%] rounded-2xl border p-4 shadow-sm animate-fade-in", isUser ? "bg-primary/10 border-primary/20" : "bg-card border-border")}>
+      <div className={cn("max-w-[85%] rounded-lg border p-4 shadow-sm animate-fade-in transition-all duration-200 hover:shadow-md", isUser ? "bg-primary/10 border-primary/20" : "bg-card border-border")}>
         {/* Confidence Indicator for Assistant Messages */}
         {!isUser && metadata?.confidence_score !== undefined && (
           <div className="mb-3 flex items-center gap-2">
