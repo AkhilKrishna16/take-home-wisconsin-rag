@@ -67,13 +67,19 @@ export const CrossReferencePanel: React.FC<CrossReferencePanelProps> = ({
           document_id: documentId,
           content,
           query,
-          threshold: 0.3
+          threshold: 0.1
         }),
       });
 
       const data = await response.json();
-      if (data.success) {
+      if (data.success && data.count > 0) {
         setCrossReferences(data.cross_references);
+      } else {
+        setCrossReferences([]);
+        // If no specific cross-references found, try to get general patterns
+        if (activeTab === 'patterns') {
+          analyzePatterns();
+        }
       }
     } catch (error) {
       console.error('Error finding cross-references:', error);

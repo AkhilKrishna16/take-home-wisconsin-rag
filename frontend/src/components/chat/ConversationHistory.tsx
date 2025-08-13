@@ -61,10 +61,11 @@ export const ConversationHistory = ({ onLoadChat, currentSessionName, open }: Co
       const response = await fetch(`${API_BASE_URL}/chat/load/${encodeURIComponent(filename)}`);
       if (response.ok) {
         const chatData = await response.json();
-        onLoadChat(chatData);
+        console.log('Loading chat data:', chatData);
+        onLoadChat(chatData.data || chatData); // Handle both response formats
         toast({
           title: "Chat Loaded",
-          description: `Loaded chat session: ${chatData.session_name}`,
+          description: `Successfully loaded "${chatData.data?.session_name || chatData.session_name}"`,
         });
       } else {
         throw new Error('Failed to load chat');
@@ -160,6 +161,7 @@ export const ConversationHistory = ({ onLoadChat, currentSessionName, open }: Co
                     ? 'bg-primary/10 border-primary'
                     : 'hover:bg-muted/50 border-border'
                 }`}
+                onClick={() => loadChat(chat.filename)}
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1 min-w-0">

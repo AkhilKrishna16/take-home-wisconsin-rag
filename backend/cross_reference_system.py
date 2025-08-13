@@ -98,6 +98,9 @@ class CrossReferenceSystem:
             r'\b[A-Z][a-z]+ (City|Town|Village)\b',  # Cities
             r'\b\d+\s+[A-Z][a-z]+\s+(Street|St|Avenue|Ave|Road|Rd|Drive|Dr)\b',  # Addresses
             r'\b[A-Z]{2}\s+\d{5}\b',  # ZIP codes
+            r'\bWisconsin\b',  # State name
+            r'\bMadison\b',  # Common cities
+            r'\bMilwaukee\b',
         ]
         
         for pattern in location_patterns:
@@ -141,12 +144,21 @@ class CrossReferenceSystem:
             'domestic violence', 'traffic stop', 'DUI', 'assault', 'theft',
             'burglary', 'drug possession', 'weapon', 'firearm', 'Miranda',
             'search warrant', 'probable cause', 'reasonable suspicion',
-            'use of force', 'excessive force', 'civil rights', 'discrimination'
+            'use of force', 'excessive force', 'civil rights', 'discrimination',
+            'county', 'counties', 'boundaries', 'statutes', 'laws', 'training',
+            'procedures', 'policies', 'enforcement', 'officer', 'police'
         ]
         
         for keyword in legal_keywords:
             if keyword.lower() in text.lower():
                 entities['keywords'].append(keyword)
+        
+        # Also add individual words that might be relevant
+        words = text.lower().split()
+        relevant_words = ['county', 'counties', 'wisconsin', 'statutes', 'laws', 'training', 'procedures']
+        for word in relevant_words:
+            if word in words:
+                entities['keywords'].append(word)
         
         return entities
     
@@ -155,24 +167,24 @@ class CrossReferenceSystem:
         score = 0.0
         total_weight = 0.0
         
-        # Location similarity (high weight)
-        location_weight = 0.3
+        # Location similarity (medium weight)
+        location_weight = 0.2
         if doc1_entities['locations'] and doc2_entities['locations']:
             common_locations = set(doc1_entities['locations']) & set(doc2_entities['locations'])
             if common_locations:
                 score += location_weight * (len(common_locations) / max(len(doc1_entities['locations']), len(doc2_entities['locations'])))
         total_weight += location_weight
         
-        # Citation similarity (high weight)
-        citation_weight = 0.25
+        # Citation similarity (medium weight)
+        citation_weight = 0.2
         if doc1_entities['citations'] and doc2_entities['citations']:
             common_citations = set(doc1_entities['citations']) & set(doc2_entities['citations'])
             if common_citations:
                 score += citation_weight * (len(common_citations) / max(len(doc1_entities['citations']), len(doc2_entities['citations'])))
         total_weight += citation_weight
         
-        # Keyword similarity (medium weight)
-        keyword_weight = 0.2
+        # Keyword similarity (high weight - more important for general similarity)
+        keyword_weight = 0.4
         if doc1_entities['keywords'] and doc2_entities['keywords']:
             common_keywords = set(doc1_entities['keywords']) & set(doc2_entities['keywords'])
             if common_keywords:

@@ -15,6 +15,110 @@ import { Plus, Upload, Save, Download, History, Menu, FileText } from "lucide-re
 import { apiService, ChatMessage as ApiChatMessage, SourceDocument } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 
+// Helper function to format text with bullet points
+const formatTextWithBullets = (text: string): string => {
+  // Convert **xxx** patterns to bullet points
+  return text.replace(/\*\*([^*]+)\*\*/g, '• $1');
+};
+
+// Helper function to generate intelligent chat names
+const generateChatName = (messages: Message[]): string => {
+  console.log('generateChatName called with messages:', messages);
+  
+  if (messages.length <= 1) {
+    console.log('Not enough messages, returning New Chat');
+    return 'New Chat';
+  }
+  
+  const userMessages = messages.filter(m => m.role === 'user').slice(0, 3); // Take first 3 questions
+  const questions = userMessages.map(m => m.content.toLowerCase());
+  console.log('User messages found:', userMessages);
+  console.log('Questions:', questions);
+  
+  const legalKeywords = [
+    { keyword: 'miranda rights', weight: 10 },
+    { keyword: 'use of force', weight: 10 },
+    { keyword: 'probable cause', weight: 9 },
+    { keyword: 'search warrant', weight: 9 },
+    { keyword: 'domestic violence', weight: 8 },
+    { keyword: 'traffic stop', weight: 8 },
+    { keyword: 'excessive force', weight: 8 },
+    { keyword: 'reasonable suspicion', weight: 7 },
+    { keyword: 'evidence admissibility', weight: 7 },
+    { keyword: 'juvenile law', weight: 7 },
+    
+    // Medium priority - general legal terms
+    { keyword: 'arrest', weight: 6 },
+    { keyword: 'assault', weight: 6 },
+    { keyword: 'theft', weight: 6 },
+    { keyword: 'burglary', weight: 6 },
+    { keyword: 'dui', weight: 6 },
+    { keyword: 'drug possession', weight: 6 },
+    { keyword: 'weapon', weight: 6 },
+    { keyword: 'firearm', weight: 6 },
+    { keyword: 'statutes', weight: 5 },
+    { keyword: 'laws', weight: 5 },
+    { keyword: 'procedures', weight: 5 },
+    { keyword: 'training', weight: 5 },
+    { keyword: 'policy', weight: 5 },
+    { keyword: 'jurisdiction', weight: 5 },
+    
+    // Low priority - locations and general terms
+    { keyword: 'wisconsin', weight: 4 },
+    { keyword: 'madison', weight: 4 },
+    { keyword: 'milwaukee', weight: 4 },
+    { keyword: 'dane county', weight: 4 },
+    { keyword: 'property tax', weight: 4 },
+    { keyword: 'boundaries', weight: 3 },
+    { keyword: 'citations', weight: 3 },
+    { keyword: 'county', weight: 3 }
+  ];
+  
+  // Find keywords in questions with weights
+  const foundKeywords: { keyword: string; weight: number }[] = [];
+  questions.forEach(question => {
+    legalKeywords.forEach(({ keyword, weight }) => {
+      if (question.includes(keyword) && !foundKeywords.some(fk => fk.keyword === keyword)) {
+        foundKeywords.push({ keyword, weight });
+        console.log('Found keyword:', keyword, 'with weight:', weight);
+      }
+    });
+  });
+  
+  console.log('All found keywords:', foundKeywords);
+  
+  // Sort by weight and take top keywords
+  foundKeywords.sort((a, b) => b.weight - a.weight);
+  const topKeywords = foundKeywords.slice(0, 3);
+  console.log('Top keywords:', topKeywords);
+  
+  // Generate name based on found keywords
+  if (topKeywords.length > 0) {
+    const keywords = topKeywords.map(k => k.keyword.split(' ').map(word => 
+      word.charAt(0).toUpperCase() + word.slice(1)
+    ).join(' '));
+    const result = keywords.join(' ');
+    console.log('Generated name from keywords:', result);
+    return result;
+  }
+  
+  // Fallback: extract meaningful words from first question
+  if (questions.length > 0) {
+    const firstQuestion = questions[0];
+    // Remove common words and extract meaningful terms
+    const commonWords = ['what', 'how', 'when', 'where', 'why', 'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may', 'might', 'can', 'must', 'shall'];
+    const words = firstQuestion.split(' ')
+      .filter(word => word.length > 3 && !commonWords.includes(word.toLowerCase()))
+      .slice(0, 3);
+    
+    if (words.length >= 2) {
+      return words.map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+    }
+  }
+  
+  return 'Legal Inquiry';
+};
+
 interface Message {
   role: "user" | "assistant";
   content: string;
@@ -85,6 +189,7 @@ export const ChatLayout = () => {
   const [documentCount, setDocumentCount] = useState(0);
   const [showHistoryPanel, setShowHistoryPanel] = useState(false);
   const [currentSessionName, setCurrentSessionName] = useState<string | undefined>();
+  const [autoSaveEnabled, setAutoSaveEnabled] = useState(true);
 
   // Check connection and load document count on mount
   useEffect(() => {
@@ -122,6 +227,11 @@ export const ChatLayout = () => {
 
     setMessages((m) => [...m, { role: "user", content: text }]);
     setLoading(true);
+    
+          // Auto-save the chat after adding user message
+      if (autoSaveEnabled) {
+        setTimeout(() => autoSaveChat(), 100); // Small delay to ensure message is added
+      }
 
     let currentResponse = "";
     let responseSources: SourceDocument[] = [];
@@ -136,11 +246,11 @@ export const ChatLayout = () => {
               const newMessages = [...m];
               const lastMessage = newMessages[newMessages.length - 1];
               if (lastMessage && lastMessage.role === 'assistant') {
-                lastMessage.content = currentResponse;
+                lastMessage.content = formatTextWithBullets(currentResponse);
               } else {
                 newMessages.push({
                   role: 'assistant',
-                  content: currentResponse,
+                  content: formatTextWithBullets(currentResponse),
                 });
               }
               return newMessages;
@@ -160,6 +270,11 @@ export const ChatLayout = () => {
             }
             return newMessages;
           });
+          
+          // Auto-save after assistant responds
+          if (autoSaveEnabled) {
+            setTimeout(() => autoSaveChat(), 500); // Delay to ensure all data is processed
+          }
 
           if (completeResponse?.metadata?.source_documents) {
             // Transform backend source documents to frontend format
@@ -220,6 +335,11 @@ export const ChatLayout = () => {
     ]);
     setCurrentSources([]);
     setCurrentSessionName(undefined);
+    
+    // Auto-save the cleared chat state
+    if (autoSaveEnabled) {
+      setTimeout(() => autoSaveChat('New Chat'), 100);
+    }
   };
 
   const handleQuickQuery = (question: string) => {
@@ -228,6 +348,51 @@ export const ChatLayout = () => {
 
   const handleSaveChat = () => {
     setShowSaveModal(true);
+  };
+
+  const autoSaveChat = async (sessionName?: string) => {
+    if (!autoSaveEnabled || messages.length <= 1) {
+      console.log('Auto-save skipped:', { autoSaveEnabled, messageCount: messages.length });
+      return;
+    }
+    
+    try {
+      console.log('Auto-save triggered with messages:', messages);
+      
+      // Generate intelligent name if no session name provided
+      let displayName = sessionName;
+      if (!displayName) {
+        if (currentSessionName && !currentSessionName.startsWith('Auto_Save_')) {
+          // Keep existing intelligent name
+          displayName = currentSessionName;
+          console.log('Using existing session name:', displayName);
+        } else {
+          // Generate new intelligent name
+          displayName = generateChatName(messages);
+          console.log('Generated new name:', displayName);
+        }
+      }
+      
+      // Create filename with timestamp for uniqueness
+      const timestamp = Date.now();
+      const filename = `${displayName.replace(/[^a-zA-Z0-9\s]/g, '_').replace(/\s+/g, '_')}_${timestamp}`;
+      
+      console.log('Saving chat with name:', displayName);
+      const response = await apiService.saveChat(displayName);
+      
+      if (response.status === 'success') {
+        // Update current session name if this is a new auto-save
+        if (!currentSessionName || currentSessionName.startsWith('Auto_Save_')) {
+          setCurrentSessionName(displayName);
+        }
+        
+        console.log('Auto-saved chat successfully:', displayName, 'as', filename);
+      } else {
+        console.error('Auto-save response not successful:', response);
+      }
+    } catch (error) {
+      console.error('Auto-save failed:', error);
+    }
   };
 
   const handleUploadComplete = async () => {
@@ -246,6 +411,8 @@ export const ChatLayout = () => {
   };
 
   const handleLoadChat = (chatData: any) => {
+    console.log('Loading chat data:', chatData);
+    
     // Convert saved chat format to current message format
     const loadedMessages: Message[] = [
       {
@@ -263,87 +430,270 @@ export const ChatLayout = () => {
           content: exchange.question || "Unknown question",
         });
 
-        // Add assistant message
-        loadedMessages.push({
+        // Add assistant message with proper metadata
+        const assistantMessage: Message = {
           role: "assistant",
-          content: exchange.answer || "No answer available",
-          sources: exchange.sources || [],
-          metadata: {
+          content: formatTextWithBullets(exchange.answer || "No answer available"),
+        };
+
+        // Try to extract sources from context if available
+        if (exchange.context) {
+          // Parse context to extract source information
+          const contextLines = exchange.context.split('\n');
+          const sources: any[] = [];
+          let currentSource: any = {};
+          
+          contextLines.forEach((line: string) => {
+            if (line.startsWith('Source ')) {
+              if (currentSource.id) {
+                sources.push(currentSource);
+              }
+              
+              // Extract source number and relevance score
+              const sourceMatch = line.match(/Source (\d+) \(Relevance: ([\d.]+)\)/);
+              const sourceNumber = sourceMatch ? parseInt(sourceMatch[1]) : 1;
+              const relevanceScore = sourceMatch ? parseFloat(sourceMatch[2]) : 0.8;
+              
+              currentSource = {
+                id: sourceNumber.toString(),
+                title: 'Unknown Document',
+                content_preview: '',
+                score: relevanceScore,
+                type: 'document',
+                jurisdiction: 'unknown',
+                status: 'current',
+                section: 'General',
+                citations: [],
+                url: '#',
+                source_number: sourceNumber
+              };
+            } else if (line.includes('Document Type:')) {
+              currentSource.type = line.split(':')[1]?.trim() || 'document';
+            } else if (line.includes('Jurisdiction:')) {
+              currentSource.jurisdiction = line.split(':')[1]?.trim() || 'unknown';
+            } else if (line.includes('Content:')) {
+              const content = line.split('Content:')[1]?.trim() || '';
+              currentSource.content_preview = content.substring(0, 150) + (content.length > 150 ? '...' : '');
+              
+              // Try to extract a better title from the content
+              if (content) {
+                const lines = content.split('\n');
+                for (const line of lines) {
+                  const trimmedLine = line.trim();
+                  if (trimmedLine && trimmedLine.length > 0 && trimmedLine.length < 100) {
+                    // Look for meaningful titles (not just numbers or short text)
+                    if (trimmedLine.match(/^[A-Z][A-Z\s\d\.]+$/) || // All caps titles
+                        trimmedLine.match(/^[A-Z][a-z\s]+$/) || // Proper case titles
+                        trimmedLine.includes('CHAPTER') ||
+                        trimmedLine.includes('SECTION') ||
+                        trimmedLine.includes('STATUTE') ||
+                        trimmedLine.includes('SOVEREIGNTY') ||
+                        trimmedLine.includes('JURISDICTION') ||
+                        trimmedLine.includes('WISCONSIN STATUTES')) {
+                      currentSource.title = trimmedLine;
+                      break;
+                    }
+                  }
+                }
+                
+                // If no good title found, try to extract from the first meaningful line
+                if (currentSource.title === `Source ${currentSource.source_number}`) {
+                  for (const line of lines) {
+                    const trimmedLine = line.trim();
+                    if (trimmedLine && trimmedLine.length > 5 && trimmedLine.length < 80) {
+                      // Skip lines that are just numbers or very short
+                      if (!trimmedLine.match(/^\d+$/) && !trimmedLine.match(/^[A-Z\s]+$/)) {
+                        currentSource.title = trimmedLine;
+                        break;
+                      }
+                    }
+                  }
+                }
+              }
+            } else if (line.includes('Citations:')) {
+              const citations = line.split('Citations:')[1]?.trim() || '';
+              currentSource.citations = citations.split(',').map(c => c.trim()).filter(c => c);
+            }
+          });
+          
+          if (currentSource.id) {
+            sources.push(currentSource);
+          }
+          
+          assistantMessage.sources = sources;
+        }
+
+        // Add metadata if available
+        if (exchange.confidence_score !== undefined || exchange.safety_warnings) {
+          assistantMessage.metadata = {
             confidence_score: exchange.confidence_score,
             safety_warnings: exchange.safety_warnings,
-          },
-        });
+          };
+        }
+
+        loadedMessages.push(assistantMessage);
       });
     }
 
+    console.log('Loaded messages:', loadedMessages);
     setMessages(loadedMessages);
     setCurrentSessionName(chatData.session_name);
-    setCurrentSources([]); // Clear current sources
+    
+    // Enable auto-save for loaded chats
+    setAutoSaveEnabled(true);
+    
+    // Restore sources from the most recent exchange
+    if (chatData.history && chatData.history.length > 0) {
+      const lastExchange = chatData.history[chatData.history.length - 1];
+      if (lastExchange.context) {
+        // Parse context to extract source information for the right panel
+        const contextLines = lastExchange.context.split('\n');
+        const sources: any[] = [];
+        let currentSource: any = {};
+        
+        contextLines.forEach((line: string) => {
+          if (line.startsWith('Source ')) {
+            if (currentSource.id) {
+              sources.push(currentSource);
+            }
+            
+            // Extract source number and relevance score
+            const sourceMatch = line.match(/Source (\d+) \(Relevance: ([\d.]+)\)/);
+            const sourceNumber = sourceMatch ? parseInt(sourceMatch[1]) : 1;
+            const relevanceScore = sourceMatch ? parseFloat(sourceMatch[2]) : 0.8;
+            
+            currentSource = {
+              id: sourceNumber.toString(),
+              title: `Source ${sourceNumber}`,
+              content_preview: '',
+              score: relevanceScore,
+              type: 'document',
+              jurisdiction: 'unknown',
+              status: 'current',
+              section: 'General',
+              citations: [],
+              url: '#',
+              source_number: sourceNumber
+            };
+          } else if (line.includes('Document Type:')) {
+            currentSource.type = line.split(':')[1]?.trim() || 'document';
+          } else if (line.includes('Jurisdiction:')) {
+            currentSource.jurisdiction = line.split(':')[1]?.trim() || 'unknown';
+          } else if (line.includes('Content:')) {
+            const content = line.split('Content:')[1]?.trim() || '';
+            currentSource.content_preview = content.substring(0, 150) + (content.length > 150 ? '...' : '');
+          } else if (line.includes('Citations:')) {
+            const citations = line.split('Citations:')[1]?.trim() || '';
+            currentSource.citations = citations.split(',').map(c => c.trim()).filter(c => c);
+          }
+        });
+        
+        if (currentSource.id) {
+          sources.push(currentSource);
+        }
+        
+        setCurrentSources(sources);
+        console.log('Restored sources:', sources);
+      } else {
+        setCurrentSources([]); // Clear sources if no context
+      }
+    } else {
+      setCurrentSources([]); // Clear sources if no history
+    }
+    
     setShowHistoryPanel(false); // Close the history panel
+    
+    // Show success toast
+    toast({
+      title: "Chat Loaded",
+      description: `Successfully loaded "${chatData.session_name}" with ${chatData.history?.length || 0} exchanges and ${chatData.history && chatData.history.length > 0 ? 'restored sources' : 'no sources'}. Auto-save enabled.`,
+    });
   };
 
   return (
-    <div className="mx-auto w-full max-w-7xl px-4 py-6 md:py-10">
-      <header className="mb-6 md:mb-8">
+    <div className="mx-auto w-full max-w-6xl px-4 py-4 md:py-6">
+      <header className="mb-4 md:mb-6">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h1 className="text-xl md:text-2xl">Wisconsin Statutes Chatbot</h1>
-            <p className="mt-1 text-sm text-muted-foreground">Find your answers in the Wisconsin Statutes</p>
+            <h1 className="text-xl md:text-2xl">Wisconsin Legal Chatbot</h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Find your answers in the Wisconsin Statutes
+              {autoSaveEnabled && (
+                <span className="ml-2 inline-flex items-center gap-1 text-xs text-green-600">
+                  <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
+                  auto-saving
+                </span>
+              )}
+            </p>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             <StatusBadge 
               label={isConnected ? "Connected" : "Disconnected"} 
               variant={isConnected ? "success" : "destructive"} 
             />
-            <Button 
-              variant="outline" 
-              size="sm"
-              className="hover-scale" 
-              onClick={() => setShowHistoryPanel(!showHistoryPanel)}
-              disabled={!isConnected}
-            >
-              <History className="mr-2 h-4 w-4" /> History
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm"
-              className="hover-scale" 
-              onClick={() => setShowUploadModal(true)}
-              disabled={!isConnected}
-            >
-              <Upload className="mr-2 h-4 w-4" /> Upload
-              {documentCount > 0 && (
-                <span className="ml-2 px-2 py-0.5 text-xs bg-primary text-primary-foreground rounded-full">
-                  {documentCount}
-                </span>
-              )}
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm"
-              className="hover-scale" 
-              onClick={handleSaveChat}
-              disabled={!isConnected || messages.length <= 1}
-            >
-              <Save className="mr-2 h-4 w-4" /> Save
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm"
-              className="hover-scale" 
-              onClick={() => setShowExportModal(true)}
-              disabled={!isConnected || messages.length <= 1}
-            >
-              <Download className="mr-2 h-4 w-4" /> Export
-            </Button>
-            <Button variant="secondary" size="sm" className="hover-scale" onClick={clearChat}>
-              <Plus className="mr-2 h-4 w-4" /> New
-            </Button>
+            
+            {/* Primary Actions */}
+            <div className="flex items-center gap-1">
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="hover-scale" 
+                onClick={() => setShowHistoryPanel(!showHistoryPanel)}
+                disabled={!isConnected}
+              >
+                <History className="mr-2 h-4 w-4" /> History
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="hover-scale" 
+                onClick={() => setShowUploadModal(true)}
+                disabled={!isConnected}
+              >
+                <Upload className="mr-2 h-4 w-4" /> Upload
+                {documentCount > 0 && (
+                  <span className="ml-2 px-2 py-0.5 text-xs bg-primary text-primary-foreground rounded-full">
+                    {documentCount}
+                  </span>
+                )}
+              </Button>
+            </div>
+            
+            {/* Chat Management */}
+            <div className="flex items-center gap-1">
+              <Button 
+                variant="outline" 
+                size="sm"
+                className={`hover-scale ${autoSaveEnabled ? 'bg-green-600' : ''}`}
+                onClick={() => setAutoSaveEnabled(!autoSaveEnabled)}
+                disabled={!isConnected}
+                title={autoSaveEnabled ? "Auto-save enabled" : "Auto-save disabled"}
+              >
+                <Save className="mr-2 h-4 w-4" /> 
+                {autoSaveEnabled ? "Auto-Save" : "Manual"}
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="hover-scale" 
+                onClick={() => setShowExportModal(true)}
+                disabled={!isConnected || messages.length <= 1}
+              >
+                <Download className="mr-2 h-4 w-4" /> Export
+              </Button>
+              <Button variant="secondary" size="sm" className="hover-scale" onClick={clearChat}>
+                <Plus className="mr-2 h-4 w-4" /> New
+              </Button>
+            </div>
           </div>
         </div>
       </header>
 
-      <div className={`grid gap-6 ${showHistoryPanel ? 'grid-cols-1 lg:grid-cols-[350px_1fr_320px] xl:grid-cols-[350px_1fr_380px]' : 'grid-cols-1 lg:grid-cols-[1fr_320px] xl:grid-cols-[1fr_380px]'}`}>
+      <div className={`grid gap-4 ${
+        showHistoryPanel 
+          ? 'grid-cols-1 lg:grid-cols-[300px_1fr_300px] xl:grid-cols-[320px_1fr_320px]'
+          : 'grid-cols-1 lg:grid-cols-[1fr_300px] xl:grid-cols-[1fr_320px]'
+      }`}>
         {/* History Panel */}
         {showHistoryPanel && (
           <aside aria-label="Chat History" className="rounded-xl border bg-card p-0">
@@ -356,8 +706,8 @@ export const ChatLayout = () => {
         )}
 
         <section aria-label="Conversation" className="rounded-xl border bg-card p-0">
-          <ScrollArea className="h-[56vh] px-4 py-4">
-            <div className="flex flex-col gap-4">
+          <ScrollArea className="h-[60vh] px-4 py-4">
+            <div className="flex flex-col gap-3">
               {messages.map((m, i) => (
                 <ChatMessage 
                   key={i} 
@@ -382,15 +732,15 @@ export const ChatLayout = () => {
           </div>
         </section>
 
-        <aside aria-label="Sidebar" className="space-y-4">
+        <aside aria-label="Sidebar" className="space-y-3">
           {/* Quick Queries */}
-          <div className="rounded-xl border bg-card p-4">
+          <div className="rounded-xl border bg-card p-3">
             <QuickQueries onQuerySelect={handleQuickQuery} disabled={loading || !isConnected} />
           </div>
 
           {/* Context Sources */}
-          <div className="rounded-xl border bg-card p-4">
-            <div className="mb-4 flex items-center justify-between">
+          <div className="rounded-xl border bg-card p-3">
+            <div className="mb-3 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="h-2 w-2 rounded-full bg-primary"></div>
                 <h2 className="text-sm font-semibold">Context Sources</h2>
@@ -401,20 +751,20 @@ export const ChatLayout = () => {
             </div>
             
             {currentSources.length > 0 ? (
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {currentSources.map((s, i) => (
                   <SourceCard key={i} {...s} />
                 ))}
               </div>
             ) : (
-              <div className="text-center py-8 text-muted-foreground">
-                <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
+              <div className="text-center py-6 text-muted-foreground">
+                <FileText className="h-6 w-6 mx-auto mb-2 opacity-50" />
                 <p className="text-xs">No sources yet</p>
                 <p className="text-xs">Ask a question to see relevant documents</p>
               </div>
             )}
             
-            <Separator className="my-4" />
+            <Separator className="my-3" />
             <div className="text-xs text-muted-foreground leading-relaxed">
               Documents are semantically indexed and ranked by relevance to your query. 
               Each source shows the most relevant sections from your knowledge base.

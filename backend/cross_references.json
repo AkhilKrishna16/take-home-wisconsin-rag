@@ -1,0 +1,187 @@
+{
+  "cross_references": {
+    "doc_001": [
+      "doc_002",
+      "doc_003",
+      "doc_004"
+    ],
+    "doc_002": [
+      "doc_001",
+      "doc_003",
+      "doc_005"
+    ],
+    "doc_003": [
+      "doc_001",
+      "doc_002",
+      "doc_006"
+    ],
+    "doc_004": [
+      "doc_001",
+      "doc_005",
+      "doc_007"
+    ],
+    "doc_005": [
+      "doc_002",
+      "doc_004",
+      "doc_008"
+    ]
+  },
+  "relationship_graph": {
+    "doc_001": {
+      "doc_002": {
+        "similarity": 0.75,
+        "common_entities": {
+          "locations": [
+            "Wisconsin",
+            "Dane County"
+          ],
+          "citations": [
+            "940.19"
+          ],
+          "keywords": [
+            "domestic violence",
+            "county"
+          ],
+          "names": []
+        },
+        "timestamp": "2025-08-13T02:05:16.786811"
+      },
+      "doc_003": {
+        "similarity": 0.68,
+        "common_entities": {
+          "locations": [
+            "Wisconsin"
+          ],
+          "citations": [],
+          "keywords": [
+            "county",
+            "statutes"
+          ],
+          "names": []
+        },
+        "timestamp": "2025-08-13T02:05:16.786827"
+      },
+      "doc_004": {
+        "similarity": 0.82,
+        "common_entities": {
+          "locations": [
+            "Wisconsin"
+          ],
+          "citations": [
+            "35.18"
+          ],
+          "keywords": [
+            "use of force",
+            "policies"
+          ],
+          "names": []
+        },
+        "timestamp": "2025-08-13T02:05:16.786837"
+      }
+    },
+    "doc_002": {
+      "doc_001": {
+        "similarity": 0.75,
+        "common_entities": {
+          "locations": [
+            "Wisconsin",
+            "Dane County"
+          ],
+          "citations": [
+            "940.19"
+          ],
+          "keywords": [
+            "domestic violence",
+            "county"
+          ],
+          "names": []
+        },
+        "timestamp": "2025-08-13T02:05:16.786839"
+      },
+      "doc_003": {
+        "similarity": 0.71,
+        "common_entities": {
+          "locations": [
+            "Wisconsin",
+            "Milwaukee County"
+          ],
+          "citations": [
+            "2.01"
+          ],
+          "keywords": [
+            "traffic stop",
+            "procedures"
+          ],
+          "names": []
+        },
+        "timestamp": "2025-08-13T02:05:16.786840"
+      },
+      "doc_005": {
+        "similarity": 0.63,
+        "common_entities": {
+          "locations": [
+            "Wisconsin"
+          ],
+          "citations": [],
+          "keywords": [
+            "training",
+            "procedures"
+          ],
+          "names": []
+        },
+        "timestamp": "2025-08-13T02:05:16.786841"
+      }
+    },
+    "doc_003": {
+      "doc_001": {
+        "similarity": 0.68,
+        "common_entities": {
+          "locations": [
+            "Wisconsin"
+          ],
+          "citations": [],
+          "keywords": [
+            "county",
+            "statutes"
+          ],
+          "names": []
+        },
+        "timestamp": "2025-08-13T02:05:16.786843"
+      },
+      "doc_002": {
+        "similarity": 0.71,
+        "common_entities": {
+          "locations": [
+            "Wisconsin",
+            "Milwaukee County"
+          ],
+          "citations": [
+            "2.01"
+          ],
+          "keywords": [
+            "traffic stop",
+            "procedures"
+          ],
+          "names": []
+        },
+        "timestamp": "2025-08-13T02:05:16.786844"
+      },
+      "doc_006": {
+        "similarity": 0.59,
+        "common_entities": {
+          "locations": [
+            "Wisconsin"
+          ],
+          "citations": [],
+          "keywords": [
+            "supreme court",
+            "precedents"
+          ],
+          "names": []
+        },
+        "timestamp": "2025-08-13T02:05:16.786845"
+      }
+    }
+  },
+  "last_updated": "2025-08-13T02:05:16.786936"
+}
