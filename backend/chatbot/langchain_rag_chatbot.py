@@ -388,6 +388,7 @@ Search Quality Metrics:
                 'citations': getattr(result, 'citation_chain', []),
                 'dates': metadata.get('dates', []),
                 'file_name': file_name,
+                'original_file_name': metadata.get('original_file_name', file_name),  # Add original filename for download
                 'module_title': metadata.get('module_title', 'Unknown'),
                 'section': section
             }

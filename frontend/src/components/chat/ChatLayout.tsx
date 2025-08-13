@@ -176,31 +176,68 @@ export const ChatLayout = () => {
   const [documentCount, setDocumentCount] = useState(0);
   const [showHistoryPanel, setShowHistoryPanel] = useState(false);
   const [currentSessionName, setCurrentSessionName] = useState<string | undefined>();
+  const [currentChatId, setCurrentChatId] = useState<string | undefined>();
   const [autoSaveEnabled, setAutoSaveEnabled] = useState(true);
+  const [abortController, setAbortController] = useState<AbortController | null>(null);
 
   // Check connection and load document count on mount
   useEffect(() => {
     const checkConnection = async () => {
-      const connected = await apiService.healthCheck();
-      setIsConnected(connected);
-      if (!connected) {
+      try {
+        const connected = await apiService.healthCheck();
+        setIsConnected(connected);
+        if (!connected) {
+          toast({
+            title: "Connection Error",
+            description: "Unable to connect to the backend server. Please make sure it's running on localhost:5001",
+            variant: "destructive",
+          });
+        } else {
+          // Load document count with timeout
+          const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Timeout')), 5000)
+          );
+          
+                      try {
+              const documents = await Promise.race([
+                apiService.listDocuments(),
+                timeoutPromise
+              ]) as any[];
+              setDocumentCount(documents.length);
+            } catch (error) {
+            console.error('Error loading document count:', error);
+            // Don't show error toast for document count, just log it
+          }
+        }
+      } catch (error) {
+        console.error('Connection check failed:', error);
+        setIsConnected(false);
         toast({
           title: "Connection Error",
-          description: "Unable to connect to the backend server. Please make sure it's running on localhost:5001",
+          description: "Unable to connect to the backend server",
           variant: "destructive",
         });
-      } else {
-        // Load document count
-        try {
-          const documents = await apiService.listDocuments();
-          setDocumentCount(documents.length);
-        } catch (error) {
-          console.error('Error loading document count:', error);
-        }
       }
     };
     checkConnection();
   }, [toast]);
+
+    // Cleanup abort controller on unmount
+  useEffect(() => {
+    return () => {
+      if (abortController) {
+        abortController.abort();
+      }
+    };
+  }, [abortController]);
+
+  const stopGeneration = () => {
+    if (abortController) {
+      abortController.abort();
+      setAbortController(null);
+    }
+    setLoading(false);
+  };
 
   const onSend = async (text: string) => {
     if (!isConnected) {
@@ -211,6 +248,20 @@ export const ChatLayout = () => {
       });
       return;
     }
+
+    // Validate input
+    if (!text.trim()) {
+      toast({
+        title: "Empty Message",
+        description: "Please enter a question to ask",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Create new abort controller for this request
+    const controller = new AbortController();
+    setAbortController(controller);
 
     setMessages((m) => [...m, { role: "user", content: text }]);
     setLoading(true);
@@ -277,10 +328,12 @@ export const ChatLayout = () => {
               content_preview: doc.content_preview || 'No preview available',
               url: '#', // We don't have URLs in the backend data
               source_number: doc.source_number || index + 1,
+              filename: doc.original_file_name || doc.file_name, // Add filename for download
             }));
             setCurrentSources(responseSources);
           }
           setLoading(false);
+          setAbortController(null); // Clean up abort controller
         },
         (error) => {
           console.error('Streaming error:', error);
@@ -292,12 +345,14 @@ export const ChatLayout = () => {
             },
           ]);
           setLoading(false);
+          setAbortController(null); // Clean up abort controller
           toast({
             title: "Error",
             description: error,
             variant: "destructive",
           });
-        }
+        },
+        controller
       );
     } catch (error) {
       console.error('Error in onSend:', error);
@@ -309,6 +364,7 @@ export const ChatLayout = () => {
         },
       ]);
       setLoading(false);
+      setAbortController(null); // Clean up abort controller
     }
   };
 
@@ -322,6 +378,7 @@ export const ChatLayout = () => {
     ]);
     setCurrentSources([]);
     setCurrentSessionName(undefined);
+    setCurrentChatId(undefined); // Reset chat ID to start fresh
     
     // Auto-save the cleared chat state
     if (autoSaveEnabled) {
@@ -353,19 +410,35 @@ export const ChatLayout = () => {
         }
       }
       
-      // Create filename with timestamp for uniqueness
-      const timestamp = Date.now();
-      const filename = `${displayName.replace(/[^a-zA-Z0-9\s]/g, '_').replace(/\s+/g, '_')}_${timestamp}`;
+      // If we have a current chat ID, we're updating an existing chat
+      // If not, we're creating a new chat
+      const isUpdating = !!currentChatId;
       
+      if (isUpdating) {
+        // Update existing chat - delete the old one and create new with same name
+        try {
+          // Get the list of saved chats to find the current one
+          const savedChats = await apiService.listSavedChats();
+          const currentChat = savedChats.find(chat => chat.filename === currentChatId);
+          
+          if (currentChat) {
+            // Delete the old chat file
+            await apiService.deleteSavedChat(currentChatId);
+          }
+        } catch (error) {
+          console.error('Error deleting old chat:', error);
+        }
+      }
+      
+      // Save the chat (this will create a new file)
       const response = await apiService.saveChat(displayName);
       
       if (response.success) {
-        // Update current session name if this is a new auto-save
-        if (!currentSessionName || currentSessionName.startsWith('Auto_Save_')) {
-          setCurrentSessionName(displayName);
-        }
+        // Update current session name and chat ID
+        setCurrentSessionName(displayName);
+        setCurrentChatId(response.filename); // Store the new filename as current chat ID
         
-        console.log('Auto-saved chat:', displayName, 'as', filename);
+        console.log('Auto-saved chat:', displayName, 'as', response.filename, isUpdating ? '(updated)' : '(new)');
       }
     } catch (error) {
       console.error('Auto-save failed:', error);
@@ -588,8 +661,8 @@ export const ChatLayout = () => {
   };
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 py-4 md:py-6">
-      <header className="mb-4 md:mb-6">
+    <div className="mx-auto w-full max-w-6xl px-4 md:px-6 py-4 md:py-6 h-full flex flex-col">
+      <header className="mb-4 md:mb-6 lg:mb-8">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <h1 className="text-xl md:text-2xl">Wisconsin Legal Chatbot</h1>
@@ -666,10 +739,10 @@ export const ChatLayout = () => {
         </div>
       </header>
 
-      <div className={`grid gap-4 ${
+      <div className={`grid gap-4 md:gap-6 lg:gap-8 flex-1 ${
         showHistoryPanel 
           ? 'grid-cols-1 lg:grid-cols-[300px_1fr_300px] xl:grid-cols-[320px_1fr_320px]'
-          : 'grid-cols-1 lg:grid-cols-[1fr_300px] xl:grid-cols-[1fr_320px]'
+          : 'grid-cols-1 md:grid-cols-[1fr_250px] lg:grid-cols-[1fr_300px] xl:grid-cols-[1fr_320px]'
       }`}>
         {/* History Panel */}
         {showHistoryPanel && (
@@ -682,10 +755,10 @@ export const ChatLayout = () => {
           </aside>
         )}
 
-        <section aria-label="Conversation" className="rounded-xl border bg-card p-0">
-          <ScrollArea className="h-[60vh] px-4 py-4">
-            <div className="flex flex-col gap-3">
-              {messages.map((m, i) => (
+        <section aria-label="Conversation" className="rounded-xl border bg-card p-0 flex flex-col">
+          <ScrollArea className="flex-1 px-4 md:px-6 py-6 md:py-8 min-h-[300px] md:min-h-[400px] max-h-[60vh] md:max-h-[70vh]">
+            <div className="flex flex-col gap-6">
+              {messages.filter(m => m.content && m.content.trim()).map((m, i) => (
                 <ChatMessage 
                   key={i} 
                   role={m.role} 
@@ -704,19 +777,24 @@ export const ChatLayout = () => {
               )}
             </div>
           </ScrollArea>
-          <div className="border-t p-4">
-            <ChatInput onSend={onSend} disabled={loading || !isConnected} />
+          <div className="border-t p-4 md:p-6">
+            <ChatInput 
+              onSend={onSend} 
+              onStop={stopGeneration}
+              disabled={loading || !isConnected} 
+              isGenerating={loading}
+            />
           </div>
         </section>
 
-        <aside aria-label="Sidebar" className="space-y-3">
+        <aside aria-label="Sidebar" className="space-y-4 md:space-y-6">
           {/* Quick Queries */}
-          <div className="rounded-xl border bg-card p-3">
+          <div className="rounded-xl border bg-card p-4 md:p-6">
             <QuickQueries onQuerySelect={handleQuickQuery} disabled={loading || !isConnected} />
           </div>
 
           {/* Context Sources */}
-          <div className="rounded-xl border bg-card p-3">
+          <div className="rounded-xl border bg-card p-4 md:p-6">
             <div className="mb-3 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="h-2 w-2 rounded-full bg-primary"></div>

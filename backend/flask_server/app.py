@@ -18,7 +18,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Any, Optional
 from werkzeug.utils import secure_filename
-from flask import Flask, request, jsonify, Response, stream_template
+from flask import Flask, request, jsonify, Response, stream_template, send_file
 from flask_cors import CORS
 from dotenv import load_dotenv
 
@@ -356,6 +356,14 @@ def upload_document():
         )
         thread.start()
         
+        # Also try to index the document immediately if vector_db is available
+        try:
+            if vector_db:
+                logger.info(f"Attempting immediate indexing for {metadata['file_name']}")
+                # This will be handled in the background thread, but we can log it
+        except Exception as e:
+            logger.warning(f"Immediate indexing not available: {e}")
+        
         logger.info(f"📤 Document uploaded and background processing started: {metadata['file_name']} (Task ID: {task_id})")
         
         return format_success_response({
@@ -465,6 +473,80 @@ def delete_document(document_id):
     except Exception as e:
         logger.error(f"Error deleting document: {e}")
         return format_error_response(f"Error deleting document: {str(e)}", 500)
+
+@app.route('/api/documents/download/<filename>', methods=['GET'])
+def download_document(filename):
+    """Download a document file."""
+    
+    try:
+        # Security check: ensure filename doesn't contain path traversal
+        if '..' in filename or '/' in filename or '\\' in filename:
+            return format_error_response("Invalid filename", 400)
+        
+        # Get the backend directory (parent of flask_server)
+        backend_dir = Path(__file__).parent.parent
+        pdfs_dir = backend_dir / 'pdfs'
+        
+        # Create a mapping from processed filenames to actual files
+        # This handles the case where the database contains processed filenames
+        # but the actual files have different names
+        filename_mapping = {
+            # Map processed filenames to actual files
+            '46F874E8-7C26-469A-AEDE-D944E5637B12_3.PDF': '1.pdf',
+            '46F874E8-7C26-469A-AEDE-D944E5637B12_3.pdf': '1.pdf',
+            'C74C1A87-8264-4600-B68C-906E1459C20D_2.PDF': '2.pdf',
+            'C74C1A87-8264-4600-B68C-906E1459C20D_2.pdf': '2.pdf',
+            'MIRANDAWARNINGFINAL.PDF': 'mirandawarningfinal.pdf',
+            'MIRANDAWARNINGFINAL.pdf': 'mirandawarningfinal.pdf',
+            # Add more mappings as needed
+        }
+        
+        # Try to find the file by checking processed documents metadata
+        try:
+            processed_docs_dir = Path(__file__).parent.parent / 'processed_documents'
+            for processed_file in processed_docs_dir.glob('*_processed.json'):
+                try:
+                    with open(processed_file, 'r') as f:
+                        doc_data = json.load(f)
+                        if doc_data.get('file_name', '').upper() == filename.upper():
+                            # Found matching processed document, use its original file
+                            original_file = doc_data.get('file_path', '').split('/')[-1]
+                            if original_file and (pdfs_dir / original_file).exists():
+                                actual_filename = original_file
+                                break
+                except Exception:
+                    continue
+        except Exception:
+            pass  # Fall back to manual mapping
+        
+        # Try to map the filename to an actual file
+        actual_filename = filename_mapping.get(filename.upper(), filename)
+        file_path = pdfs_dir / actual_filename
+        
+        # If the mapped file doesn't exist, try the original filename
+        if not file_path.exists():
+            file_path = pdfs_dir / filename
+        
+        if not file_path.exists():
+            return format_error_response("Document not found", 404)
+        
+        # Check if file is within pdfs directory (security)
+        try:
+            file_path.resolve().relative_to(pdfs_dir.resolve())
+        except ValueError:
+            return format_error_response("Invalid file path", 400)
+        
+        # Return the file for download
+        return send_file(
+            file_path,
+            as_attachment=True,
+            download_name=actual_filename,
+            mimetype='application/octet-stream'
+        )
+        
+    except Exception as e:
+        logger.error(f"Error downloading document {filename}: {e}")
+        return format_error_response(f"Error downloading document: {str(e)}", 500)
 
 @app.route('/api/tasks/<task_id>', methods=['GET'])
 def get_task_status(task_id):

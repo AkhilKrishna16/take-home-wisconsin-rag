@@ -1,6 +1,8 @@
-import { ExternalLink, FileText, BookOpen, Shield, Gavel, MapPin, Calendar, Hash } from "lucide-react";
+import { ExternalLink, FileText, BookOpen, Shield, Gavel, MapPin, Calendar, Hash, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import { apiService } from "@/lib/api";
+import { useToast } from "@/hooks/use-toast";
 
 export interface SourceCardProps {
   id: string;
@@ -14,6 +16,7 @@ export interface SourceCardProps {
   citations?: string[];
   content_preview?: string;
   source_number?: number;
+  filename?: string;
 }
 
 export const SourceCard = ({ 
@@ -25,8 +28,35 @@ export const SourceCard = ({
   status,
   section,
   content_preview,
-  source_number
+  source_number,
+  filename
 }: SourceCardProps) => {
+  const { toast } = useToast();
+
+  const handleDownload = async () => {
+    if (!filename) {
+      toast({
+        title: "Download Error",
+        description: "No file available for download",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      await apiService.downloadDocument(filename);
+      toast({
+        title: "Download Started",
+        description: `Downloading ${filename}`,
+      });
+    } catch (error) {
+      toast({
+        title: "Download Failed",
+        description: "Failed to download document",
+        variant: "destructive",
+      });
+    }
+  };
   // Get appropriate icon based on document type
   const getIcon = (docType: string) => {
     switch (docType?.toLowerCase()) {
@@ -151,20 +181,33 @@ export const SourceCard = ({
         </div>
       )}
 
-      {/* Action button */}
-      {url && url !== '#' && (
+      {/* Action buttons */}
+      {(url && url !== '#') || filename ? (
         <div className="flex items-center justify-between pt-2 border-t border-border/40">
-          <a
-            href={url}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-1 text-xs font-medium text-primary/80 transition-all hover:text-primary hover:gap-1.5"
-          >
-            View source
-            <ExternalLink className="h-3 w-3" />
-          </a>
+          <div className="flex items-center gap-2">
+            {url && url !== '#' && (
+              <a
+                href={url}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1 text-xs font-medium text-primary/80 transition-all hover:text-primary hover:gap-1.5"
+              >
+                View source
+                <ExternalLink className="h-3 w-3" />
+              </a>
+            )}
+            {filename && (
+              <button
+                onClick={handleDownload}
+                className="inline-flex items-center gap-1 text-xs font-medium text-primary/80 transition-all hover:text-primary hover:gap-1.5"
+              >
+                Download
+                <Download className="h-3 w-3" />
+              </button>
+            )}
+          </div>
         </div>
-      )}
+      ) : null}
     </article>
   );
 };

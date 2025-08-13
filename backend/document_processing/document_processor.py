@@ -243,6 +243,7 @@ class DocumentProcessor:
             raise ImportError("PDF processing libraries not available")
         
         try:
+            # Try pdfminer first
             text = extract_text(str(file_path), laparams=LAParams())
             if text.strip():
                 return text
@@ -253,6 +254,37 @@ class DocumentProcessor:
                 text = ""
                 for page in reader.pages:
                     text += page.extract_text() + "\n"
+                
+                # If still no text, try OCR with pytesseract
+                if not text.strip():
+                    try:
+                        import pytesseract
+                        from PIL import Image
+                        import fitz  # PyMuPDF
+                        
+                        # Open PDF with PyMuPDF
+                        doc = fitz.open(str(file_path))
+                        text = ""
+                        
+                        for page_num in range(len(doc)):
+                            page = doc.load_page(page_num)
+                            # Get page as image
+                            pix = page.get_pixmap()
+                            img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+                            
+                            # Extract text using OCR
+                            page_text = pytesseract.image_to_string(img)
+                            text += page_text + "\n"
+                        
+                        doc.close()
+                        logger.info(f"Used OCR to extract text from {file_path}")
+                        return text
+                        
+                    except ImportError:
+                        logger.warning("OCR libraries not available. Install with: pip install pytesseract Pillow PyMuPDF")
+                    except Exception as ocr_error:
+                        logger.error(f"OCR extraction failed: {ocr_error}")
+                
                 return text
         except Exception as e:
             logger.error(f"Error extracting PDF text: {e}")

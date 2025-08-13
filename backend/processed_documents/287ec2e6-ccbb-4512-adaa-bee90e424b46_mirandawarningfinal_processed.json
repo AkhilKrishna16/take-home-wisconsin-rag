@@ -1,0 +1,42 @@
+{
+  "file_path": "uploads/287ec2e6-ccbb-4512-adaa-bee90e424b46_mirandawarningfinal.pdf",
+  "file_name": "287ec2e6-ccbb-4512-adaa-bee90e424b46_mirandawarningfinal.pdf",
+  "file_type": "pdf",
+  "document_type": "training",
+  "processed_at": "2025-08-13T12:48:11.160626",
+  "file_hash": "aa516226c089aa84ca3e2f137d336c1cc956a4de88e6cde80a53affdc22558e6",
+  "metadata": {
+    "file_size": 1990580,
+    "created_date": "2025-08-13T12:48:11.147552",
+    "modified_date": "2025-08-13T12:48:11.147552",
+    "pdf_metadata": {
+      "/Title": "",
+      "/Creator": "wkhtmltopdf 0.12.3",
+      "/Producer": "Qt 4.8.7",
+      "/CreationDate": "D:20160427145533Z"
+    },
+    "page_count": 1
+  },
+  "content": "\n",
+  "summary": "No content available for summary.",
+  "key_entities": {
+    "dates": [],
+    "names": [],
+    "organizations": [],
+    "locations": [],
+    "references": []
+  },
+  "structure": {
+    "sections": [],
+    "headings": [],
+    "paragraphs": 1,
+    "word_count": 0
+  },
+  "tags": [
+    "learning",
+    "training",
+    "education"
+  ],
+  "chunks": [],
+  "chunk_count": 0
+}
