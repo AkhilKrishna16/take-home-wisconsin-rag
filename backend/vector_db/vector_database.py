@@ -24,7 +24,7 @@ try:
     PINECONE_AVAILABLE = True
 except ImportError:
     PINECONE_AVAILABLE = False
-    print("Pinecone not available. Install with: pip install pinecone-client")
+    print("Pinecone not available. Install with: pip install pinecone")
 
 # Embeddings imports
 try:
@@ -403,6 +403,59 @@ class LegalVectorDatabase:
         except Exception as e:
             logger.error(f"Failed to delete document {document_id}: {e}")
             return False
+    
+    def list_documents(self) -> List[Dict[str, Any]]:
+        """
+        List all documents in the index.
+        
+        Returns:
+            List of document metadata
+        """
+        if not self.index:
+            raise RuntimeError("Pinecone index not initialized")
+        
+        try:
+            # Get all vectors with metadata
+            results = self.index.query(
+                vector=[0.0] * 384,  # Dummy vector for fetching all
+                top_k=10000,  # Large number to get all documents
+                include_metadata=True
+            )
+            
+            # Extract unique document IDs
+            documents = {}
+            for match in results.matches:
+                if 'document_id' in match.metadata:
+                    doc_id = match.metadata['document_id']
+                    if doc_id not in documents:
+                        documents[doc_id] = {
+                            'document_id': doc_id,
+                            'document_type': match.metadata.get('chunk_type', 'unknown'),
+                            'file_name': match.metadata.get('file_name', 'unknown'),
+                            'chunk_count': 1
+                        }
+                    else:
+                        documents[doc_id]['chunk_count'] += 1
+            
+            return list(documents.values())
+            
+        except Exception as e:
+            logger.error(f"Failed to list documents: {e}")
+            return []
+    
+    def search(self, query: str, top_k: int = 10, filter_metadata: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
+        """
+        Alias for search_legal_documents for compatibility.
+        
+        Args:
+            query: Search query
+            top_k: Number of results to return
+            filter_metadata: Metadata filters
+            
+        Returns:
+            List of search results
+        """
+        return self.search_legal_documents(query, top_k, filter_metadata)
     
     def clear_index(self) -> bool:
         """Clear all vectors from the index."""

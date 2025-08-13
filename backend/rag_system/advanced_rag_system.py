@@ -30,8 +30,12 @@ from collections import defaultdict
 import difflib
 
 # Vector database imports
-from vector_database import LegalVectorDatabase
-from document_processor import DocumentProcessor
+import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+
+from vector_db.vector_database import LegalVectorDatabase
+from document_processing.document_processor import DocumentProcessor
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

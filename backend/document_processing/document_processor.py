@@ -16,8 +16,12 @@ from datetime import datetime
 import hashlib
 
 # Import the document chunker and vector database
-from document_chunker import DocumentChunker
-from vector_database import LegalVectorDatabase
+from .document_chunker import DocumentChunker
+import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+
+from vector_db.vector_database import LegalVectorDatabase
 
 # PDF Processing
 try:
