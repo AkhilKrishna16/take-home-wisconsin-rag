@@ -21,7 +21,7 @@ export const ChatInput = ({ onSend, onStop, disabled = false, isGenerating = fal
   };
 
   return (
-    <div className="group relative rounded-xl border bg-background p-4 shadow-sm focus-within:ring-2 focus-within:ring-primary/60">
+    <div className="group relative rounded-xl border bg-background p-3 shadow-sm focus-within:ring-2 focus-within:ring-primary/60">
       <div className="pointer-events-none absolute inset-0 -z-10 rounded-xl opacity-0 transition-opacity duration-300 group-focus-within:opacity-100" style={{ background: "var(--gradient-primary)" }} />
       <div className="flex items-end gap-2">
         <Textarea
@@ -63,7 +63,7 @@ export const ChatInput = ({ onSend, onStop, disabled = false, isGenerating = fal
           </Button>
         )}
       </div>
-      <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
+      <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground">
         <span>Shift + Enter for newline</span>
         <span>Press Enter to send</span>
       </div>

@@ -8,9 +8,10 @@ interface SaveModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSaveSuccess?: (sessionName: string) => void;
+  messages: any[];
 }
 
-export const SaveModal = ({ open, onOpenChange, onSaveSuccess }: SaveModalProps) => {
+export const SaveModal = ({ open, onOpenChange, onSaveSuccess, messages }: SaveModalProps) => {
   const { toast } = useToast();
   const [sessionName, setSessionName] = useState("");
   const [saving, setSaving] = useState(false);
@@ -27,7 +28,7 @@ export const SaveModal = ({ open, onOpenChange, onSaveSuccess }: SaveModalProps)
 
     setSaving(true);
     try {
-      const result = await apiService.saveChat(sessionName);
+      const result = await apiService.saveChat(sessionName, messages);
       
       toast({
         title: "Save Successful",

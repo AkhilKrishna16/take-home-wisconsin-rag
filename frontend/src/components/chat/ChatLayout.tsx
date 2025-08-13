@@ -21,18 +21,9 @@ const formatTextWithBullets = (text: string): string => {
   return text.replace(/\*\*([^*]+)\*\*/g, '• $1');
 };
 
-// Helper function to generate intelligent chat names using LLM
+// Helper function to generate simple chat names from keywords
 const generateChatName = async (firstQuery: string): Promise<string> => {
-  try {
-    const result = await apiService.generateChatName(firstQuery);
-    if (result.success && result.name) {
-      return result.name;
-    }
-  } catch (error) {
-    console.error('Error generating chat name with LLM:', error);
-  }
-  
-  // Fallback to simple keyword extraction
+  // Simple keyword extraction
   const words = firstQuery.split(' ');
   const meaningfulWords = words.filter(word => 
     word.length > 3 && 
@@ -109,6 +100,17 @@ export const ChatLayout = () => {
         "Hi! I'm your Wisconsin Statutes RAG assistant. Ask me questions about legal documents and I'll cite the most relevant sources from your knowledge base.",
     },
   ]);
+
+  // Helper function to filter out the initial greeting message when saving
+  const filterConversationMessages = (messages: Message[]): Message[] => {
+    return messages.filter(msg => {
+      // Skip the initial greeting message
+      if (msg.role === 'assistant' && msg.content.includes("Hi! I'm your Wisconsin Statutes RAG assistant")) {
+        return false;
+      }
+      return true;
+    });
+  };
   const [loading, setLoading] = useState(false);
   const [currentSources, setCurrentSources] = useState<SourceDocument[]>([]);
   const [isConnected, setIsConnected] = useState(false);
@@ -249,6 +251,7 @@ export const ChatLayout = () => {
           }
         },
         (completeResponse) => {
+          
           // Update the last assistant message with metadata
           setMessages((m) => {
             const newMessages = [...m];
@@ -262,12 +265,28 @@ export const ChatLayout = () => {
             return newMessages;
           });
           
-          // Auto-save after assistant responds, but only for the first exchange
+          // Auto-save after assistant responds
           if (autoSaveEnabled) {
-            const userMessageCount = messages.filter(m => m.role === 'user').length;
-            if (userMessageCount === 1) { // Only save after the first complete exchange
-              setTimeout(() => autoSaveChat(), 500); // Delay to ensure all data is processed
-            }
+            // Use a timeout to ensure the messages state has been updated
+            setTimeout(() => {
+              // Get the current messages state
+              setMessages(currentMessages => {
+                const userMessageCount = currentMessages.filter(m => m.role === 'user').length;
+                
+                // Auto-save if we have user messages (either new chat or update existing)
+                if (userMessageCount > 0) {
+                  setTimeout(() => {
+                    // Get the latest currentSessionName from state
+                    setCurrentSessionName(latestSessionName => {
+                      autoSaveChat(latestSessionName, currentMessages);
+                      return latestSessionName; // Don't modify state
+                    });
+                  }, 50);
+                }
+                
+                return currentMessages; // Don't modify the state, just use it for logic
+              });
+            }, 100);
           }
 
           if (completeResponse?.metadata?.source_documents) {
@@ -337,10 +356,7 @@ export const ChatLayout = () => {
     setCurrentSessionName(undefined);
     setCurrentChatId(undefined); // Reset chat ID to start fresh
     
-    // Auto-save the cleared chat state
-    if (autoSaveEnabled) {
-      setTimeout(() => autoSaveChat('New Chat'), 100);
-    }
+    // Don't auto-save when clearing - let user explicitly save if they want to
   };
 
   const handleQuickQuery = (question: string) => {
@@ -351,21 +367,57 @@ export const ChatLayout = () => {
     setShowSaveModal(true);
   };
 
-  const autoSaveChat = async (sessionName?: string) => {
-    if (!autoSaveEnabled || messages.length <= 1) return;
+  const autoSaveChat = async (sessionName?: string, messagesToSave?: Message[]) => {
+    const messagesToUse = messagesToSave;
+    
+    if (!autoSaveEnabled || !messagesToUse) {
+      return;
+    }
+    
+    // Filter out the initial greeting message - only save actual user-assistant exchanges
+    const conversationMessages = filterConversationMessages(messagesToUse);
+    
+    // Check if there are any user messages (actual conversation)
+    const userMessages = conversationMessages.filter(m => m.role === 'user');
+    if (userMessages.length === 0) {
+      return;
+    }
+    
+    // Auto-save on first response (create new chat) or update existing chat
+    // First response: userMessages.length === 1 (create new chat)
+    // Subsequent responses: userMessages.length > 1 (update existing chat)
     
     try {
       // Use the current session name (generated by LLM) or provided name
       const displayName = sessionName || currentSessionName || 'Legal Inquiry';
       
+      // If we have a current chat ID, delete the old file first to avoid duplicates
+      if (currentChatId) {
+        try {
+          await apiService.deleteSavedChat(currentChatId);
+        } catch (error) {
+          // Ignore errors when deleting old files
+        }
+      }
+      
       // Save the chat (this will create a new file)
-      const response = await apiService.saveChat(displayName);
+      const response = await apiService.saveChat(displayName, conversationMessages);
+      console.log("here");
       
       if (response.success) {
         // Update current chat ID
         setCurrentChatId(response.filename);
         
-        console.log('Auto-saved chat:', displayName, 'as', response.filename);
+        toast({
+          title: "Chat Auto-Saved",
+          description: `Chat "${displayName}" has been automatically saved.`,
+        });
+      } else {
+        toast({
+          title: "Auto-Save Failed",
+          description: response.error || "Failed to auto-save chat",
+          variant: "destructive",
+        });
       }
     } catch (error) {
       console.error('Auto-save failed:', error);
@@ -514,7 +566,7 @@ export const ChatLayout = () => {
 
     console.log('Loaded messages:', loadedMessages);
     setMessages(loadedMessages);
-    setCurrentSessionName(chatData.session_name);
+            setCurrentSessionName(chatData.chat_name || chatData.session_name);
     
     // Enable auto-save for loaded chats
     setAutoSaveEnabled(true);
@@ -583,7 +635,7 @@ export const ChatLayout = () => {
     // Show success toast
     toast({
       title: "Chat Loaded",
-      description: `Successfully loaded "${chatData.session_name}" with ${chatData.history?.length || 0} exchanges and ${chatData.history && chatData.history.length > 0 ? 'restored sources' : 'no sources'}. Auto-save enabled.`,
+              description: `Successfully loaded "${chatData.chat_name || chatData.session_name}" with ${chatData.history?.length || 0} exchanges and ${chatData.history && chatData.history.length > 0 ? 'restored sources' : 'no sources'}. Auto-save enabled.`,
     });
   };
 
@@ -646,9 +698,21 @@ export const ChatLayout = () => {
                 disabled={!isConnected}
                 title={autoSaveEnabled ? "Auto-save enabled" : "Auto-save disabled"}
               >
-                <Save className="mr-2 h-4 w-4" /> 
-                {autoSaveEnabled ? "Auto-Save" : "Manual"}
+                <Save className="mr-1 h-4 w-4" /> 
+                {autoSaveEnabled ? "Auto" : "Manual"}
               </Button>
+              {!autoSaveEnabled && messages.filter(m => m.role === 'user').length > 0 && (
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="hover-scale px-2" 
+                  onClick={handleSaveChat}
+                  disabled={!isConnected}
+                  title="Save current chat"
+                >
+                  <Save className="h-4 w-4" />
+                </Button>
+              )}
               <Button 
                 variant="outline" 
                 size="sm"
@@ -656,10 +720,10 @@ export const ChatLayout = () => {
                 onClick={() => setShowExportModal(true)}
                 disabled={!isConnected || messages.length <= 1}
               >
-                <Download className="mr-2 h-4 w-4" /> Export
+                <Download className="mr-1 h-4 w-4" /> Export
               </Button>
               <Button variant="secondary" size="sm" className="hover-scale" onClick={clearChat}>
-                <Plus className="mr-2 h-4 w-4" /> New
+                <Plus className="mr-1 h-4 w-4" /> New
               </Button>
             </div>
           </div>
@@ -692,7 +756,7 @@ export const ChatLayout = () => {
                   sources={m.role === 'assistant' ? currentSources.slice(0, 2) : undefined}
                   metadata={m.metadata}
                 >
-                  <p>{m.content}</p>
+                  <div dangerouslySetInnerHTML={{ __html: m.content.replace(/\n/g, '<br/>') }} />
                 </ChatMessage>
               ))}
 
@@ -704,7 +768,7 @@ export const ChatLayout = () => {
               )}
             </div>
           </ScrollArea>
-          <div className="border-t p-4 md:p-6">
+          <div className="border-t p-2 md:p-3">
             <ChatInput 
               onSend={onSend} 
               onStop={stopGeneration}
@@ -787,6 +851,7 @@ export const ChatLayout = () => {
       <SaveModal 
         open={showSaveModal} 
         onOpenChange={setShowSaveModal}
+        messages={filterConversationMessages(messages)}
         onSaveSuccess={(sessionName) => setCurrentSessionName(sessionName)}
       />
     </div>

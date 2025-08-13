@@ -483,6 +483,23 @@ def download_document(filename):
         if '..' in filename or '/' in filename or '\\' in filename:
             return format_error_response("Invalid filename", 400)
         
+        # Filter out invalid filenames that are clearly not files
+        invalid_patterns = [
+            'CHAPTER',
+            'SECTION', 
+            'STATUTE',
+            'WISCONSIN STATUTES',
+            'Unknown Document',
+            'Source ',
+            'Document Type',
+            'Jurisdiction'
+        ]
+        
+        # Check if filename contains invalid patterns
+        for pattern in invalid_patterns:
+            if pattern.upper() in filename.upper():
+                return format_error_response("File not available for download", 404)
+        
         # Get the backend directory (parent of flask_server)
         backend_dir = Path(__file__).parent.parent
         pdfs_dir = backend_dir / 'pdfs'
@@ -525,22 +542,44 @@ def download_document(filename):
                      # Map processed filenames to actual files in pdfs/
                      '46F874E8-7C26-469A-AEDE-D944E5637B12_3.PDF': '1.pdf',
                      '46F874E8-7C26-469A-AEDE-D944E5637B12_3.pdf': '1.pdf',
+                     '46f874e8-7c26-469a-aede-d944e5637b12_3.pdf': '1.pdf',  # lowercase version
                      'C74C1A87-8264-4600-B68C-906E1459C20D_2.PDF': '2.pdf',
                      'C74C1A87-8264-4600-B68C-906E1459C20D_2.pdf': '2.pdf',
+                     'c74c1a87-8264-4600-b68c-906e1459c20d_2.pdf': '2.pdf',  # lowercase version
                      'MIRANDAWARNINGFINAL.PDF': 'mirandawarningfinal.pdf',
                      'MIRANDAWARNINGFINAL.pdf': 'mirandawarningfinal.pdf',
+                     'mirandawarningfinal.pdf': 'mirandawarningfinal.pdf',  # lowercase version
                      # Add mappings for files that were in uploads/ but are now in pdfs/
                      '287EC2E6-CCBB-4512-ADAA-BEE90E424B46_MIRANDAWARNINGFINAL.PDF': 'mirandawarningfinal.pdf',
                      '287EC2E6-CCBB-4512-ADAA-BEE90E424B46_MIRANDAWARNINGFINAL.pdf': 'mirandawarningfinal.pdf',
+                     '287ec2e6-ccbb-4512-adaa-bee90e424b46_mirandawarningfinal.pdf': 'mirandawarningfinal.pdf',  # lowercase
                      # Handle the truncated filename case - map to existing Wisconsin Statutes file
                      'DAF-468E-B9C0-C1F_70.PDF': '1.pdf',
                      'DAF-468E-B9C0-C1F_70.pdf': '1.pdf',
+                     'daf-468e-b9c0-c1f_70.pdf': '1.pdf',  # lowercase
                      '110D7158-F0AF-468E-B9C0-AADF25337C1F_70.PDF': '1.pdf',
                      '110D7158-F0AF-468E-B9C0-AADF25337C1F_70.pdf': '1.pdf',
+                     '110d7158-f0af-468e-b9c0-aadf25337c1f_70.pdf': '1.pdf',  # lowercase
                  }
         
         # Try to map the filename to an actual file using comprehensive mapping
-        actual_filename = comprehensive_mapping.get(filename.upper(), filename)
+        # Try exact match first, then uppercase, then lowercase
+        actual_filename = comprehensive_mapping.get(filename)
+        if not actual_filename:
+            actual_filename = comprehensive_mapping.get(filename.upper())
+        if not actual_filename:
+            actual_filename = comprehensive_mapping.get(filename.lower())
+        if not actual_filename:
+            # Try pattern-based matching as fallback
+            filename_lower = filename.lower()
+            if '46f874e8-7c26-469a-aede' in filename_lower or '_3' in filename_lower:
+                actual_filename = '1.pdf'
+            elif 'c74c1a87-8264-4600-b68c' in filename_lower or '_2' in filename_lower:
+                actual_filename = '2.pdf'
+            elif 'miranda' in filename_lower:
+                actual_filename = 'mirandawarningfinal.pdf'
+            else:
+                actual_filename = filename
         file_path = pdfs_dir / actual_filename
         
         # If the mapped file doesn't exist, try the original filename
@@ -673,14 +712,34 @@ def save_chat():
     
     try:
         data = request.get_json()
-        session_name = data.get('session_name', f"Chat_{datetime.now().strftime('%Y%m%d_%H%M%S')}")
+        # Accept both 'name' and 'session_name' for backward compatibility
+        session_name = data.get('name') or data.get('session_name') or f"Chat_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         
-        # Get current conversation history
-        history = chatbot.get_conversation_history()
+        # Get conversation history from frontend messages if provided, otherwise use chatbot history
+        frontend_messages = data.get('messages', [])
+        if frontend_messages:
+            # Convert frontend messages to backend history format
+            history = []
+            user_messages = [msg for msg in frontend_messages if msg.get('role') == 'user']
+            assistant_messages = [msg for msg in frontend_messages if msg.get('role') == 'assistant' and msg.get('content', '').strip()]
+            
+            # Pair up user questions with assistant answers
+            for i, user_msg in enumerate(user_messages):
+                if i < len(assistant_messages):
+                    history.append({
+                        'question': user_msg.get('content', ''),
+                        'answer': assistant_messages[i].get('content', ''),
+                        'timestamp': datetime.now().isoformat(),
+                        'context': ''  # Could add source context here if available
+                    })
+        else:
+            # Fallback to chatbot history
+            history = chatbot.get_conversation_history()
         
-        # Save to file
+        # Save to file with chat_name field for display purposes
         chat_data = {
             'session_name': session_name,
+            'chat_name': session_name,  # Add chat_name field for consistent access
             'created_at': datetime.now().isoformat(),
             'history': history,
             'total_exchanges': len(history)
@@ -852,6 +911,7 @@ def list_saved_chats():
                     chat_data = json.load(f)
                     chats.append({
                         'session_name': chat_data.get('session_name', 'Unnamed Session'),
+                        'chat_name': chat_data.get('chat_name', chat_data.get('session_name', 'Unnamed Session')),
                         'created_at': chat_data.get('created_at', ''),
                         'total_exchanges': chat_data.get('total_exchanges', 0),
                         'filename': file_path.name
@@ -888,7 +948,7 @@ def load_saved_chat(filename):
         with open(file_path, 'r') as f:
             chat_data = json.load(f)
         
-        return format_success_response(chat_data, f"Chat session '{chat_data.get('session_name', 'Unnamed')}' loaded successfully")
+        return format_success_response(chat_data, f"Chat session '{chat_data.get('chat_name', chat_data.get('session_name', 'Unnamed'))}' loaded successfully")
         
     except Exception as e:
         logger.error(f"Error loading saved chat {filename}: {e}")
@@ -916,8 +976,9 @@ def delete_saved_chat(filename):
         
         return format_success_response({
             'deleted_filename': filename,
-            'session_name': chat_data.get('session_name', 'Unnamed Session')
-        }, f"Chat session '{chat_data.get('session_name', 'Unnamed')}' deleted successfully")
+            'session_name': chat_data.get('session_name', 'Unnamed Session'),
+            'chat_name': chat_data.get('chat_name', chat_data.get('session_name', 'Unnamed Session'))
+        }, f"Chat session '{chat_data.get('chat_name', chat_data.get('session_name', 'Unnamed'))}' deleted successfully")
         
     except Exception as e:
         logger.error(f"Error deleting saved chat {filename}: {e}")

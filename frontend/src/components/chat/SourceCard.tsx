@@ -33,8 +33,33 @@ export const SourceCard = ({
 }: SourceCardProps) => {
   const { toast } = useToast();
 
+  const isValidDownloadableFile = (filename: string | undefined): boolean => {
+    if (!filename) return false;
+    
+    // Check if filename has a proper file extension
+    const hasValidExtension = /\.(pdf|doc|docx|txt|html|md)$/i.test(filename);
+    
+    // Check if filename contains invalid patterns that indicate it's not a real file
+    const invalidPatterns = [
+      'CHAPTER',
+      'SECTION', 
+      'STATUTE',
+      'WISCONSIN STATUTES',
+      'Unknown Document',
+      'Source ',
+      'Document Type',
+      'Jurisdiction'
+    ];
+    
+    const hasInvalidPattern = invalidPatterns.some(pattern => 
+      filename.toUpperCase().includes(pattern.toUpperCase())
+    );
+    
+    return hasValidExtension && !hasInvalidPattern;
+  };
+
   const handleDownload = async () => {
-    if (!filename) {
+    if (!filename || !isValidDownloadableFile(filename)) {
       toast({
         title: "Download Error",
         description: "No file available for download",
@@ -185,7 +210,7 @@ export const SourceCard = ({
       )}
 
       {/* Action buttons */}
-      {(url && url !== '#') || filename ? (
+      {(url && url !== '#') || (filename && isValidDownloadableFile(filename)) ? (
         <div className="flex items-center justify-between pt-2 border-t border-border/40">
           <div className="flex items-center gap-2">
             {url && url !== '#' && (
@@ -199,7 +224,7 @@ export const SourceCard = ({
                 <ExternalLink className="h-3 w-3" />
               </a>
             )}
-            {filename && (
+            {filename && isValidDownloadableFile(filename) && (
               <button
                 onClick={handleDownload}
                 className="inline-flex items-center gap-1 text-xs font-medium text-primary/80 transition-all hover:text-primary hover:gap-1.5"

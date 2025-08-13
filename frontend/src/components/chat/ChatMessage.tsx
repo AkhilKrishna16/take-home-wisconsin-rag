@@ -32,7 +32,7 @@ export const ChatMessage = ({ role, children, sources, metadata }: ChatMessagePr
               ) : (
                 <AlertTriangle className="mr-1 h-3 w-3" />
               )}
-              Confidence: {Math.round(metadata.confidence_score * 100)}%
+              Match Score: {Math.round(metadata.confidence_score * 100)}%
             </Badge>
           </div>
         )}

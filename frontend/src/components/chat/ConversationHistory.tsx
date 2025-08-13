@@ -5,11 +5,11 @@ import { Separator } from "@/components/ui/separator";
 import { MessageSquare, Clock, Trash2, Loader2 } from "lucide-react";
 import { apiService } from "@/lib/api";
 
-const API_BASE_URL = 'http://localhost:5001/api';
 import { useToast } from "@/hooks/use-toast";
 
 interface SavedChat {
   session_name: string;
+  chat_name: string;
   created_at: string;
   total_exchanges: number;
   filename: string;
@@ -30,23 +30,9 @@ export const ConversationHistory = ({ onLoadChat, currentSessionName, open }: Co
   const loadSavedChats = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/chat/list-saved`);
-      console.log('Response status:', response.status);
-      
-      if (response.ok) {
-        const data = await response.json();
-        console.log('Saved chats data:', data);
-        
-        if (data.status === 'success' && data.data && data.data.chats) {
-          setSavedChats(data.data.chats);
-        } else {
-          console.error('Unexpected response format:', data);
-          setSavedChats([]);
-        }
-      } else {
-        console.error('Failed to load saved chats:', response.status, response.statusText);
-        setSavedChats([]);
-      }
+      const chats = await apiService.listSavedChats();
+      console.log('Saved chats data:', chats);
+      setSavedChats(chats);
     } catch (error) {
       console.error('Error loading saved chats:', error);
       setSavedChats([]);
@@ -58,18 +44,13 @@ export const ConversationHistory = ({ onLoadChat, currentSessionName, open }: Co
   const loadChat = async (filename: string) => {
     setLoadingChat(filename);
     try {
-      const response = await fetch(`${API_BASE_URL}/chat/load/${encodeURIComponent(filename)}`);
-      if (response.ok) {
-        const chatData = await response.json();
-        console.log('Loading chat data:', chatData);
-        onLoadChat(chatData.data || chatData); // Handle both response formats
-        toast({
-          title: "Chat Loaded",
-          description: `Successfully loaded "${chatData.data?.session_name || chatData.session_name}"`,
-        });
-      } else {
-        throw new Error('Failed to load chat');
-      }
+      const chatData = await apiService.loadSavedChat(filename);
+      console.log('Loading chat data:', chatData);
+      onLoadChat(chatData);
+      toast({
+        title: "Chat Loaded",
+        description: `Successfully loaded "${chatData.chat_name || chatData.session_name}"`,
+      });
     } catch (error) {
       console.error('Error loading chat:', error);
       toast({
@@ -84,25 +65,29 @@ export const ConversationHistory = ({ onLoadChat, currentSessionName, open }: Co
 
   const deleteChat = async (filename: string) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/chat/delete/${encodeURIComponent(filename)}`, {
-        method: 'DELETE',
+      await apiService.deleteSavedChat(filename);
+      setSavedChats(prev => prev.filter(chat => chat.filename !== filename));
+      toast({
+        title: "Chat Deleted",
+        description: "Chat session deleted successfully.",
       });
-      if (response.ok) {
-        setSavedChats(prev => prev.filter(chat => chat.filename !== filename));
-        toast({
-          title: "Chat Deleted",
-          description: "Chat session deleted successfully.",
-        });
-      } else {
-        throw new Error('Failed to delete chat');
-      }
     } catch (error) {
       console.error('Error deleting chat:', error);
-      toast({
-        title: "Delete Failed",
-        description: "Failed to delete chat session. Please try again.",
-        variant: "destructive",
-      });
+      
+      // If the file doesn't exist (404), remove it from the UI state anyway
+      if (error instanceof Error && error.message.includes('404')) {
+        setSavedChats(prev => prev.filter(chat => chat.filename !== filename));
+        toast({
+          title: "Chat Removed",
+          description: "Chat was already deleted. Removed from list.",
+        });
+      } else {
+        toast({
+          title: "Delete Failed",
+          description: "Failed to delete chat session. Please try again.",
+          variant: "destructive",
+        });
+      }
     }
   };
 
@@ -117,9 +102,20 @@ export const ConversationHistory = ({ onLoadChat, currentSessionName, open }: Co
 
   // Refresh when component becomes visible
   useEffect(() => {
-    if (open !== undefined) {
+    if (open) {
       loadSavedChats();
     }
+  }, [open]);
+
+  // Also refresh every 5 seconds when panel is open to catch auto-saves
+  useEffect(() => {
+    if (!open) return;
+    
+    const interval = setInterval(() => {
+      loadSavedChats();
+    }, 5000);
+    
+    return () => clearInterval(interval);
   }, [open]);
 
   return (
@@ -157,7 +153,7 @@ export const ConversationHistory = ({ onLoadChat, currentSessionName, open }: Co
               <div
                 key={chat.filename}
                 className={`p-3 rounded-lg border cursor-pointer transition-colors ${
-                  currentSessionName === chat.session_name
+                  currentSessionName === chat.chat_name || currentSessionName === chat.session_name
                     ? 'bg-primary/10 border-primary'
                     : 'hover:bg-muted/50 border-border'
                 }`}
@@ -166,7 +162,7 @@ export const ConversationHistory = ({ onLoadChat, currentSessionName, open }: Co
                 <div className="flex items-start justify-between">
                   <div className="flex-1 min-w-0">
                     <h3 className="font-medium text-sm truncate">
-                      {chat.session_name}
+                      {chat.chat_name || chat.session_name}
                     </h3>
                     <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
                       <Clock className="h-3 w-3" />
