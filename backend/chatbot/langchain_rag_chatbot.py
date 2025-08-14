@@ -400,7 +400,7 @@ Search Quality Metrics:
         """Build chat history for LangChain."""
         
         history = []
-        for exchange in self.conversation_history[-6:]:  # Last 6 exchanges
+        for exchange in self.conversation_history[-6:]:
             history.append(HumanMessage(content=exchange['question']))
             history.append(AIMessage(content=exchange['answer']))
         
@@ -419,9 +419,9 @@ Search Quality Metrics:
         
         # Adjust based on number of results
         if rag_response['total_results'] >= 5:
-            base_confidence *= 1.1  # Bonus for many results
+            base_confidence *= 1.1
         elif rag_response['total_results'] < 2:
-            base_confidence *= 0.8  # Penalty for few results
+            base_confidence *= 0.8
         
         # Adjust based on relevance breakdown
         relevance_scores = rag_response['relevance_breakdown']
@@ -740,7 +740,7 @@ Search Quality Metrics:
                     'citations_found': rag_response['citation_chain'],
                     'context_length': len(context),
                     'jurisdiction': rag_response['jurisdiction'],
-                    'source_documents': source_documents,  # Add source documents
+                    'source_documents': source_documents,
                     'langchain_components': {
                         'prompt_type': prompt_type,
                         'chat_history_length': len(chat_history)

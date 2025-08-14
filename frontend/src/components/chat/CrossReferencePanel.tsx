@@ -76,7 +76,6 @@ export const CrossReferencePanel: React.FC<CrossReferencePanelProps> = ({
         setCrossReferences(data.cross_references);
       } else {
         setCrossReferences([]);
-        // If no specific cross-references found, try to get general patterns
         if (activeTab === 'patterns') {
           analyzePatterns();
         }

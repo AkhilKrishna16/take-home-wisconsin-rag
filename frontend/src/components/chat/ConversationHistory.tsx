@@ -74,7 +74,6 @@ export const ConversationHistory = ({ onLoadChat, currentSessionName, open }: Co
     } catch (error) {
       console.error('Error deleting chat:', error);
       
-      // If the file doesn't exist (404), remove it from the UI state anyway
       if (error instanceof Error && error.message.includes('404')) {
         setSavedChats(prev => prev.filter(chat => chat.filename !== filename));
         toast({
@@ -100,14 +99,12 @@ export const ConversationHistory = ({ onLoadChat, currentSessionName, open }: Co
     loadSavedChats();
   }, []);
 
-  // Refresh when component becomes visible
   useEffect(() => {
     if (open) {
       loadSavedChats();
     }
   }, [open]);
 
-  // Also refresh every 5 seconds when panel is open to catch auto-saves
   useEffect(() => {
     if (!open) return;
     

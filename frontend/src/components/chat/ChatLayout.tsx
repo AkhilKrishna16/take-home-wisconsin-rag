@@ -15,15 +15,11 @@ import { Plus, Upload, Save, Download, History, Menu, FileText } from "lucide-re
 import { apiService, ChatMessage as ApiChatMessage, SourceDocument } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 
-// Helper function to format text with bullet points
 const formatTextWithBullets = (text: string): string => {
-  // Convert **xxx** patterns to bullet points
   return text.replace(/\*\*([^*]+)\*\*/g, '• $1');
 };
 
-// Helper function to generate simple chat names from keywords
 const generateChatName = async (firstQuery: string): Promise<string> => {
-  // Simple keyword extraction
   const words = firstQuery.split(' ');
   const meaningfulWords = words.filter(word => 
     word.length > 3 && 
@@ -101,10 +97,8 @@ export const ChatLayout = () => {
     },
   ]);
 
-  // Helper function to filter out the initial greeting message when saving
   const filterConversationMessages = (messages: Message[]): Message[] => {
     return messages.filter(msg => {
-      // Skip the initial greeting message
       if (msg.role === 'assistant' && msg.content.includes("Hi! I'm your Wisconsin Statutes RAG assistant")) {
         return false;
       }
@@ -124,7 +118,6 @@ export const ChatLayout = () => {
   const [autoSaveEnabled, setAutoSaveEnabled] = useState(true);
   const [abortController, setAbortController] = useState<AbortController | null>(null);
 
-  // Check connection and load document count on mount
   useEffect(() => {
     const checkConnection = async () => {
       try {
@@ -137,7 +130,6 @@ export const ChatLayout = () => {
             variant: "destructive",
           });
         } else {
-          // Load document count with timeout
           const timeoutPromise = new Promise((_, reject) => 
             setTimeout(() => reject(new Error('Timeout')), 5000)
           );
@@ -150,7 +142,6 @@ export const ChatLayout = () => {
               setDocumentCount(documents.length);
             } catch (error) {
             console.error('Error loading document count:', error);
-            // Don't show error toast for document count, just log it
           }
         }
       } catch (error) {
@@ -166,7 +157,6 @@ export const ChatLayout = () => {
     checkConnection();
   }, [toast]);
 
-    // Cleanup abort controller on unmount
   useEffect(() => {
     return () => {
       if (abortController) {
@@ -193,7 +183,6 @@ export const ChatLayout = () => {
       return;
     }
 
-    // Validate input
     if (!text.trim()) {
       toast({
         title: "Empty Message",
@@ -203,19 +192,16 @@ export const ChatLayout = () => {
       return;
     }
 
-    // Create new abort controller for this request
     const controller = new AbortController();
     setAbortController(controller);
 
     setMessages((m) => [...m, { role: "user", content: text }]);
     setLoading(true);
     
-    // Only create a new chat after the first user message (not the initial assistant message)
     const userMessageCount = messages.filter(m => m.role === 'user').length;
-    const isFirstUserMessage = userMessageCount === 0; // This is the first user message
+    const isFirstUserMessage = userMessageCount === 0;
     
     if (isFirstUserMessage && autoSaveEnabled) {
-      // Generate chat name using LLM for the first query
       try {
         const chatName = await generateChatName(text);
         setCurrentSessionName(chatName);
@@ -252,7 +238,6 @@ export const ChatLayout = () => {
         },
         (completeResponse) => {
           
-          // Update the last assistant message with metadata
           setMessages((m) => {
             const newMessages = [...m];
             const lastMessage = newMessages[newMessages.length - 1];
@@ -265,32 +250,26 @@ export const ChatLayout = () => {
             return newMessages;
           });
           
-          // Auto-save after assistant responds
           if (autoSaveEnabled) {
-            // Use a timeout to ensure the messages state has been updated
             setTimeout(() => {
-              // Get the current messages state
               setMessages(currentMessages => {
                 const userMessageCount = currentMessages.filter(m => m.role === 'user').length;
                 
-                // Auto-save if we have user messages (either new chat or update existing)
                 if (userMessageCount > 0) {
                   setTimeout(() => {
-                    // Get the latest currentSessionName from state
                     setCurrentSessionName(latestSessionName => {
                       autoSaveChat(latestSessionName, currentMessages);
-                      return latestSessionName; // Don't modify state
+                      return latestSessionName;
                     });
                   }, 50);
                 }
                 
-                return currentMessages; // Don't modify the state, just use it for logic
+                return currentMessages;
               });
             }, 100);
           }
 
           if (completeResponse?.metadata?.source_documents) {
-            // Transform backend source documents to frontend format
             responseSources = completeResponse.metadata.source_documents.map((doc: any, index: number) => ({
               id: doc.source_number?.toString() || index.toString(),
               title: doc.file_name || doc.module_title || `Source ${doc.source_number || index + 1}`,
@@ -301,15 +280,15 @@ export const ChatLayout = () => {
               section: doc.section || 'General',
               citations: doc.citations || [],
               content_preview: doc.content_preview || 'No preview available',
-              url: '#', // We don't have URLs in the backend data
+              url: '#',
               source_number: doc.source_number || index + 1,
-              filename: doc.original_file_name || doc.file_name, // Add filename for download
+              filename: doc.original_file_name || doc.file_name,
             }));
             console.log('Processed source documents:', responseSources.map(s => ({ title: s.title, filename: s.filename })));
             setCurrentSources(responseSources);
           }
           setLoading(false);
-          setAbortController(null); // Clean up abort controller
+          setAbortController(null);
         },
         (error) => {
           console.error('Streaming error:', error);
@@ -321,7 +300,7 @@ export const ChatLayout = () => {
             },
           ]);
           setLoading(false);
-          setAbortController(null); // Clean up abort controller
+          setAbortController(null);
           toast({
             title: "Error",
             description: error,
@@ -340,7 +319,7 @@ export const ChatLayout = () => {
         },
       ]);
       setLoading(false);
-      setAbortController(null); // Clean up abort controller
+      setAbortController(null);
     }
   };
 
@@ -354,9 +333,8 @@ export const ChatLayout = () => {
     ]);
     setCurrentSources([]);
     setCurrentSessionName(undefined);
-    setCurrentChatId(undefined); // Reset chat ID to start fresh
+    setCurrentChatId(undefined);
     
-    // Don't auto-save when clearing - let user explicitly save if they want to
   };
 
   const handleQuickQuery = (question: string) => {
@@ -374,38 +352,27 @@ export const ChatLayout = () => {
       return;
     }
     
-    // Filter out the initial greeting message - only save actual user-assistant exchanges
     const conversationMessages = filterConversationMessages(messagesToUse);
     
-    // Check if there are any user messages (actual conversation)
     const userMessages = conversationMessages.filter(m => m.role === 'user');
     if (userMessages.length === 0) {
       return;
     }
     
-    // Auto-save on first response (create new chat) or update existing chat
-    // First response: userMessages.length === 1 (create new chat)
-    // Subsequent responses: userMessages.length > 1 (update existing chat)
-    
     try {
-      // Use the current session name (generated by LLM) or provided name
       const displayName = sessionName || currentSessionName || 'Legal Inquiry';
       
-      // If we have a current chat ID, delete the old file first to avoid duplicates
       if (currentChatId) {
         try {
           await apiService.deleteSavedChat(currentChatId);
         } catch (error) {
-          // Ignore errors when deleting old files
         }
       }
       
-      // Save the chat (this will create a new file)
       const response = await apiService.saveChat(displayName, conversationMessages);
       console.log("here");
       
       if (response.success) {
-        // Update current chat ID
         setCurrentChatId(response.filename);
         
         toast({
@@ -426,7 +393,6 @@ export const ChatLayout = () => {
 
   const handleUploadComplete = async () => {
     setShowUploadModal(false);
-    // Refresh document count
     try {
       const documents = await apiService.listDocuments();
       setDocumentCount(documents.length);
@@ -442,7 +408,6 @@ export const ChatLayout = () => {
   const handleLoadChat = (chatData: any) => {
     console.log('Loading chat data:', chatData);
     
-    // Convert saved chat format to current message format
     const loadedMessages: Message[] = [
       {
         role: "assistant",
@@ -450,24 +415,19 @@ export const ChatLayout = () => {
       }
     ];
 
-    // Add the saved conversation history
     if (chatData.history && Array.isArray(chatData.history)) {
       chatData.history.forEach((exchange: any) => {
-        // Add user message
         loadedMessages.push({
           role: "user",
           content: exchange.question || "Unknown question",
         });
 
-        // Add assistant message with proper metadata
         const assistantMessage: Message = {
           role: "assistant",
           content: formatTextWithBullets(exchange.answer || "No answer available"),
         };
 
-        // Try to extract sources from context if available
         if (exchange.context) {
-          // Parse context to extract source information
           const contextLines = exchange.context.split('\n');
           const sources: any[] = [];
           let currentSource: any = {};
@@ -478,7 +438,6 @@ export const ChatLayout = () => {
                 sources.push(currentSource);
               }
               
-              // Extract source number and relevance score
               const sourceMatch = line.match(/Source (\d+) \(Relevance: ([\d.]+)\)/);
               const sourceNumber = sourceMatch ? parseInt(sourceMatch[1]) : 1;
               const relevanceScore = sourceMatch ? parseFloat(sourceMatch[2]) : 0.8;
@@ -504,15 +463,13 @@ export const ChatLayout = () => {
               const content = line.split('Content:')[1]?.trim() || '';
               currentSource.content_preview = content.substring(0, 150) + (content.length > 150 ? '...' : '');
               
-              // Try to extract a better title from the content
               if (content) {
                 const lines = content.split('\n');
                 for (const line of lines) {
                   const trimmedLine = line.trim();
                   if (trimmedLine && trimmedLine.length > 0 && trimmedLine.length < 100) {
-                    // Look for meaningful titles (not just numbers or short text)
-                    if (trimmedLine.match(/^[A-Z][A-Z\s\d\.]+$/) || // All caps titles
-                        trimmedLine.match(/^[A-Z][a-z\s]+$/) || // Proper case titles
+                    if (trimmedLine.match(/^[A-Z][A-Z\s\d\.]+$/) ||
+                        trimmedLine.match(/^[A-Z][a-z\s]+$/) ||
                         trimmedLine.includes('CHAPTER') ||
                         trimmedLine.includes('SECTION') ||
                         trimmedLine.includes('STATUTE') ||
@@ -525,12 +482,10 @@ export const ChatLayout = () => {
                   }
                 }
                 
-                // If no good title found, try to extract from the first meaningful line
                 if (currentSource.title === `Source ${currentSource.source_number}`) {
                   for (const line of lines) {
                     const trimmedLine = line.trim();
                     if (trimmedLine && trimmedLine.length > 5 && trimmedLine.length < 80) {
-                      // Skip lines that are just numbers or very short
                       if (!trimmedLine.match(/^\d+$/) && !trimmedLine.match(/^[A-Z\s]+$/)) {
                         currentSource.title = trimmedLine;
                         break;
@@ -552,7 +507,6 @@ export const ChatLayout = () => {
           assistantMessage.sources = sources;
         }
 
-        // Add metadata if available
         if (exchange.confidence_score !== undefined || exchange.safety_warnings) {
           assistantMessage.metadata = {
             confidence_score: exchange.confidence_score,
@@ -568,14 +522,11 @@ export const ChatLayout = () => {
     setMessages(loadedMessages);
             setCurrentSessionName(chatData.chat_name || chatData.session_name);
     
-    // Enable auto-save for loaded chats
     setAutoSaveEnabled(true);
     
-    // Restore sources from the most recent exchange
     if (chatData.history && chatData.history.length > 0) {
       const lastExchange = chatData.history[chatData.history.length - 1];
       if (lastExchange.context) {
-        // Parse context to extract source information for the right panel
         const contextLines = lastExchange.context.split('\n');
         const sources: any[] = [];
         let currentSource: any = {};
@@ -586,7 +537,6 @@ export const ChatLayout = () => {
               sources.push(currentSource);
             }
             
-            // Extract source number and relevance score
             const sourceMatch = line.match(/Source (\d+) \(Relevance: ([\d.]+)\)/);
             const sourceNumber = sourceMatch ? parseInt(sourceMatch[1]) : 1;
             const relevanceScore = sourceMatch ? parseFloat(sourceMatch[2]) : 0.8;
@@ -624,15 +574,14 @@ export const ChatLayout = () => {
         setCurrentSources(sources);
         console.log('Restored sources:', sources);
       } else {
-        setCurrentSources([]); // Clear sources if no context
+        setCurrentSources([]);
       }
     } else {
-      setCurrentSources([]); // Clear sources if no history
+      setCurrentSources([]);
     }
     
-    setShowHistoryPanel(false); // Close the history panel
+    setShowHistoryPanel(false);
     
-    // Show success toast
     toast({
       title: "Chat Loaded",
               description: `Successfully loaded "${chatData.chat_name || chatData.session_name}" with ${chatData.history?.length || 0} exchanges and ${chatData.history && chatData.history.length > 0 ? 'restored sources' : 'no sources'}. Auto-save enabled.`,
@@ -661,7 +610,7 @@ export const ChatLayout = () => {
               variant={isConnected ? "success" : "destructive"} 
             />
             
-            {/* Primary Actions */}
+            {}
             <div className="flex items-center gap-1">
               <Button 
                 variant="outline" 
@@ -688,7 +637,7 @@ export const ChatLayout = () => {
               </Button>
             </div>
             
-            {/* Chat Management */}
+            {}
             <div className="flex items-center gap-1">
               <Button 
                 variant="outline" 
@@ -735,7 +684,7 @@ export const ChatLayout = () => {
           ? 'grid-cols-1 lg:grid-cols-[300px_1fr_300px] xl:grid-cols-[320px_1fr_320px]'
           : 'grid-cols-1 md:grid-cols-[1fr_250px] lg:grid-cols-[1fr_300px] xl:grid-cols-[1fr_320px]'
       }`}>
-        {/* History Panel */}
+        {}
         {showHistoryPanel && (
           <aside aria-label="Chat History" className="rounded-xl border bg-card p-0">
             <ConversationHistory 
@@ -779,12 +728,12 @@ export const ChatLayout = () => {
         </section>
 
         <aside aria-label="Sidebar" className="space-y-4 md:space-y-6">
-          {/* Quick Queries */}
+          {}
           <div className="rounded-xl border bg-card p-4 md:p-6">
             <QuickQueries onQuerySelect={handleQuickQuery} disabled={loading || !isConnected} />
           </div>
 
-          {/* Context Sources */}
+          {}
           <div className="rounded-xl border bg-card p-4 md:p-6">
             <div className="mb-3 flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -819,7 +768,7 @@ export const ChatLayout = () => {
         </aside>
       </div>
 
-      {/* Upload Modal */}
+      {}
       {showUploadModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-background rounded-lg p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto">
@@ -841,13 +790,13 @@ export const ChatLayout = () => {
         </div>
       )}
 
-      {/* Export Modal */}
+      {}
       <ExportModal 
         open={showExportModal} 
         onOpenChange={setShowExportModal} 
       />
 
-      {/* Save Modal */}
+      {}
       <SaveModal 
         open={showSaveModal} 
         onOpenChange={setShowSaveModal}

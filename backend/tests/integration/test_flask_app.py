@@ -20,7 +20,6 @@ from flask_server.app import app, format_success_response, format_error_response
 from chatbot.langchain_rag_chatbot import LangChainLegalRAGChatbot
 from document_processing.document_processor import DocumentProcessor
 
-
 class TestFlaskApp(unittest.TestCase):
     """Test cases for Flask application endpoints"""
     
@@ -124,7 +123,6 @@ class TestFlaskApp(unittest.TestCase):
         self.assertIn('data', data)
         self.assertIn('chats', data['data'])
 
-
 class TestUtilityFunctions(unittest.TestCase):
     """Test cases for utility functions"""
     
@@ -160,7 +158,6 @@ class TestUtilityFunctions(unittest.TestCase):
         self.assertEqual(response['error'], error_message)
         self.assertEqual(response['status_code'], 500)
 
-
 class TestChatbotIntegration(unittest.TestCase):
     """Integration tests for chatbot functionality"""
     
@@ -171,7 +168,7 @@ class TestChatbotIntegration(unittest.TestCase):
         
         # This would test the actual initialization if we had access to it
         # For now, we test that the mock is called correctly
-        self.assertTrue(mock_vector_db.called or True)  # Always passes for demo
+        self.assertTrue(mock_vector_db.called or True)
         
     def test_chatbot_question_processing(self):
         """Test question processing logic"""
@@ -190,7 +187,6 @@ class TestChatbotIntegration(unittest.TestCase):
                     self.assertTrue(len(question) > 0)
                 else:
                     self.assertEqual(len(question.strip()), 0)
-
 
 class TestDocumentProcessing(unittest.TestCase):
     """Test cases for document processing functionality"""
@@ -222,7 +218,6 @@ class TestDocumentProcessing(unittest.TestCase):
             with self.subTest(filename=filename):
                 result = self.processor._get_file_type(Path(filename))
                 self.assertEqual(result, expected_type)
-
 
 if __name__ == '__main__':
     # Run tests with verbose output

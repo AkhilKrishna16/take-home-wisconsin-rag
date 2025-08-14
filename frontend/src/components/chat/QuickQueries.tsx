@@ -49,7 +49,6 @@ export const QuickQueries = ({ onQuerySelect, disabled = false }: QuickQueriesPr
         setQueries(quickQueries);
       } catch (error) {
         console.error('Error loading quick queries:', error);
-        // Fallback to default queries if API fails
         setQueries([
           {
             id: 'miranda_rights',

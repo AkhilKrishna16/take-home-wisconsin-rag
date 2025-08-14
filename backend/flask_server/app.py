@@ -1,11 +1,39 @@
 #!/usr/bin/env python3
 """
-Flask Server for Legal RAG Chatbot
+Flask Server for Legal RAG Chatbot System
 
-Provides API endpoints for:
-1. Chatbot querying with streaming support
-2. Document upload and vectorization for Pinecone
-3. Document management and search
+A comprehensive REST API server providing:
+
+Core Features:
+- Chat interface with streaming responses
+- Document upload and processing pipeline  
+- Vector database integration with Pinecone
+- Chat session management (save/load/delete)
+- Health monitoring and system status
+- CORS support for frontend integration
+
+API Endpoints:
+- POST /api/chat - Process chat messages
+- POST /api/chat/stream - Streaming chat responses
+- GET /api/chat/list-saved - List saved chat sessions
+- POST /api/chat/save - Save current chat session
+- POST /api/chat/load - Load saved chat session
+- DELETE /api/chat/delete/{filename} - Delete chat session
+- GET /api/documents - List available documents
+- POST /api/documents/upload - Upload and process documents
+- GET /api/documents/download/{filename} - Download document files
+- GET /health - System health check
+
+Dependencies:
+- LangChain for LLM integration
+- Pinecone for vector database
+- sentence-transformers for embeddings
+- PyPDF2/python-docx for document processing
+
+Environment Variables Required:
+- OPENAI_API_KEY: OpenAI API key for LLM
+- PINECONE_API_KEY: Pinecone API key
+- PINECONE_INDEX_NAME: Pinecone index name
 """
 
 import os
@@ -39,10 +67,10 @@ logger = logging.getLogger(__name__)
 
 # Initialize Flask app
 app = Flask(__name__)
-CORS(app)  # Enable CORS for all routes
+CORS(app)
 
 # Configuration
-app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50MB max file size
+app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024
 app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config['ALLOWED_EXTENSIONS'] = {'txt', 'pdf', 'docx', 'doc', 'html', 'md'}
 
@@ -534,7 +562,7 @@ def download_document(filename):
                 except Exception:
                     continue
         except Exception:
-            pass  # Fall back to manual mapping
+            pass
         
         # Create a comprehensive mapping from processed filenames to actual files
         # This handles the case where files were moved from uploads/ to pdfs/
@@ -542,24 +570,24 @@ def download_document(filename):
                      # Map processed filenames to actual files in pdfs/
                      '46F874E8-7C26-469A-AEDE-D944E5637B12_3.PDF': '1.pdf',
                      '46F874E8-7C26-469A-AEDE-D944E5637B12_3.pdf': '1.pdf',
-                     '46f874e8-7c26-469a-aede-d944e5637b12_3.pdf': '1.pdf',  # lowercase version
+                     '46f874e8-7c26-469a-aede-d944e5637b12_3.pdf': '1.pdf',
                      'C74C1A87-8264-4600-B68C-906E1459C20D_2.PDF': '2.pdf',
                      'C74C1A87-8264-4600-B68C-906E1459C20D_2.pdf': '2.pdf',
-                     'c74c1a87-8264-4600-b68c-906e1459c20d_2.pdf': '2.pdf',  # lowercase version
+                     'c74c1a87-8264-4600-b68c-906e1459c20d_2.pdf': '2.pdf',
                      'MIRANDAWARNINGFINAL.PDF': 'mirandawarningfinal.pdf',
                      'MIRANDAWARNINGFINAL.pdf': 'mirandawarningfinal.pdf',
-                     'mirandawarningfinal.pdf': 'mirandawarningfinal.pdf',  # lowercase version
+                     'mirandawarningfinal.pdf': 'mirandawarningfinal.pdf',
                      # Add mappings for files that were in uploads/ but are now in pdfs/
                      '287EC2E6-CCBB-4512-ADAA-BEE90E424B46_MIRANDAWARNINGFINAL.PDF': 'mirandawarningfinal.pdf',
                      '287EC2E6-CCBB-4512-ADAA-BEE90E424B46_MIRANDAWARNINGFINAL.pdf': 'mirandawarningfinal.pdf',
-                     '287ec2e6-ccbb-4512-adaa-bee90e424b46_mirandawarningfinal.pdf': 'mirandawarningfinal.pdf',  # lowercase
+                     '287ec2e6-ccbb-4512-adaa-bee90e424b46_mirandawarningfinal.pdf': 'mirandawarningfinal.pdf',
                      # Handle the truncated filename case - map to existing Wisconsin Statutes file
                      'DAF-468E-B9C0-C1F_70.PDF': '1.pdf',
                      'DAF-468E-B9C0-C1F_70.pdf': '1.pdf',
-                     'daf-468e-b9c0-c1f_70.pdf': '1.pdf',  # lowercase
+                     'daf-468e-b9c0-c1f_70.pdf': '1.pdf',
                      '110D7158-F0AF-468E-B9C0-AADF25337C1F_70.PDF': '1.pdf',
                      '110D7158-F0AF-468E-B9C0-AADF25337C1F_70.pdf': '1.pdf',
-                     '110d7158-f0af-468e-b9c0-aadf25337c1f_70.pdf': '1.pdf',  # lowercase
+                     '110d7158-f0af-468e-b9c0-aadf25337c1f_70.pdf': '1.pdf',
                  }
         
         # Try to map the filename to an actual file using comprehensive mapping
@@ -730,7 +758,7 @@ def save_chat():
                         'question': user_msg.get('content', ''),
                         'answer': assistant_messages[i].get('content', ''),
                         'timestamp': datetime.now().isoformat(),
-                        'context': ''  # Could add source context here if available
+                        'context': ''
                     })
         else:
             # Fallback to chatbot history
@@ -739,7 +767,7 @@ def save_chat():
         # Save to file with chat_name field for display purposes
         chat_data = {
             'session_name': session_name,
-            'chat_name': session_name,  # Add chat_name field for consistent access
+            'chat_name': session_name,
             'created_at': datetime.now().isoformat(),
             'history': history,
             'total_exchanges': len(history)
@@ -844,7 +872,7 @@ def export_chat():
     
     try:
         data = request.get_json()
-        export_format = data.get('format', 'pdf')  # pdf, docx, txt
+        export_format = data.get('format', 'pdf')
         include_sources = data.get('include_sources', True)
         
         # Get current conversation history
@@ -883,7 +911,7 @@ def export_chat():
         
         return format_success_response({
             'filename': filepath.name if filepath else f"{filename}.{export_format}",
-            'content': report_content,  # Always return content for frontend to handle
+            'content': report_content,
             'format': export_format,
             'exported_at': datetime.now().isoformat()
         }, f"Chat exported successfully as {export_format.upper()}")
@@ -1323,7 +1351,7 @@ if __name__ == '__main__':
         app.run(
             host='0.0.0.0',
             port=5000,
-            debug=True,  # Keep debug mode for development
+            debug=True,
             threaded=True
         )
     else:

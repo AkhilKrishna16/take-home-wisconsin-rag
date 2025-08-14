@@ -36,10 +36,8 @@ export const SourceCard = ({
   const isValidDownloadableFile = (filename: string | undefined): boolean => {
     if (!filename) return false;
     
-    // Check if filename has a proper file extension
     const hasValidExtension = /\.(pdf|doc|docx|txt|html|md)$/i.test(filename);
     
-    // Check if filename contains invalid patterns that indicate it's not a real file
     const invalidPatterns = [
       'CHAPTER',
       'SECTION', 
@@ -85,7 +83,6 @@ export const SourceCard = ({
       });
     }
   };
-  // Get appropriate icon based on document type
   const getIcon = (docType: string) => {
     switch (docType?.toLowerCase()) {
       case 'case_law':
@@ -102,7 +99,6 @@ export const SourceCard = ({
     }
   };
 
-  // Get icon color based on document type
   const getIconColor = (docType: string) => {
     switch (docType?.toLowerCase()) {
       case 'case_law':
@@ -119,7 +115,6 @@ export const SourceCard = ({
     }
   };
 
-  // Get badge color based on relevance score
   const getScoreColor = (score: number) => {
     if (score >= 0.8) return 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900 dark:text-green-200 dark:border-green-800';
     if (score >= 0.6) return 'bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900 dark:text-yellow-200 dark:border-yellow-800';
@@ -134,7 +129,7 @@ export const SourceCard = ({
         "focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary/40"
       )}
     >
-      {/* Header */}
+      {}
       <div className="flex items-start justify-between mb-2.5">
         <div className="flex items-center gap-2.5">
           <div className={cn(
@@ -166,12 +161,12 @@ export const SourceCard = ({
         )}
       </div>
 
-      {/* Title */}
+      {}
       <h3 className="mb-2.5 text-sm font-semibold leading-tight text-foreground line-clamp-2 group-hover:text-primary transition-colors">
         {title}
       </h3>
 
-      {/* Metadata */}
+      {}
       <div className="mb-2.5 space-y-1.5">
         {section && section !== 'General' && (
           <div className="flex items-center gap-1.5 text-xs">
@@ -200,7 +195,7 @@ export const SourceCard = ({
         )}
       </div>
 
-      {/* Content preview */}
+      {}
       {content_preview && (
         <div className="mb-2">
           <p className="text-xs leading-relaxed text-muted-foreground/70 line-clamp-2 group-hover:text-muted-foreground/90 transition-colors">
@@ -209,7 +204,7 @@ export const SourceCard = ({
         </div>
       )}
 
-      {/* Action buttons */}
+      {}
       {(url && url !== '#') || (filename && isValidDownloadableFile(filename)) ? (
         <div className="flex items-center justify-between pt-2 border-t border-border/40">
           <div className="flex items-center gap-2">

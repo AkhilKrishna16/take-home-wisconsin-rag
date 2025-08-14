@@ -645,7 +645,6 @@ class DocumentProcessor:
         
         return self.vector_db.get_index_stats()
 
-
 if __name__ == "__main__":
     processor = DocumentProcessor()
     

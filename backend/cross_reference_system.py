@@ -94,12 +94,12 @@ class CrossReferenceSystem:
         
         # Extract locations (counties, cities, addresses)
         location_patterns = [
-            r'\b[A-Z][a-z]+ County\b',  # County names
-            r'\b[A-Z][a-z]+ (City|Town|Village)\b',  # Cities
-            r'\b\d+\s+[A-Z][a-z]+\s+(Street|St|Avenue|Ave|Road|Rd|Drive|Dr)\b',  # Addresses
-            r'\b[A-Z]{2}\s+\d{5}\b',  # ZIP codes
-            r'\bWisconsin\b',  # State name
-            r'\bMadison\b',  # Common cities
+            r'\b[A-Z][a-z]+ County\b',
+            r'\b[A-Z][a-z]+ (City|Town|Village)\b',
+            r'\b\d+\s+[A-Z][a-z]+\s+(Street|St|Avenue|Ave|Road|Rd|Drive|Dr)\b',
+            r'\b[A-Z]{2}\s+\d{5}\b',
+            r'\bWisconsin\b',
+            r'\bMadison\b',
             r'\bMilwaukee\b',
         ]
         
@@ -109,10 +109,10 @@ class CrossReferenceSystem:
         
         # Extract legal citations
         citation_patterns = [
-            r'\b\d+\.\d+[A-Z]?\b',  # Statute numbers like 2.01, 35.18
-            r'\b[A-Z]+\s+\d+\b',  # Case citations
-            r'\b\d+\s+U\.S\.\s+\d+\b',  # US Supreme Court
-            r'\b\d+\s+Wis\.\s+\d+\b',  # Wisconsin cases
+            r'\b\d+\.\d+[A-Z]?\b',
+            r'\b[A-Z]+\s+\d+\b',
+            r'\b\d+\s+U\.S\.\s+\d+\b',
+            r'\b\d+\s+Wis\.\s+\d+\b',
         ]
         
         for pattern in citation_patterns:
@@ -121,8 +121,8 @@ class CrossReferenceSystem:
         
         # Extract dates
         date_patterns = [
-            r'\b\d{1,2}/\d{1,2}/\d{4}\b',  # MM/DD/YYYY
-            r'\b\d{4}-\d{2}-\d{2}\b',  # YYYY-MM-DD
+            r'\b\d{1,2}/\d{1,2}/\d{4}\b',
+            r'\b\d{4}-\d{2}-\d{2}\b',
             r'\b(January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},?\s+\d{4}\b',
         ]
         
@@ -132,7 +132,7 @@ class CrossReferenceSystem:
         
         # Extract names (basic pattern)
         name_patterns = [
-            r'\b[A-Z][a-z]+\s+[A-Z][a-z]+\b',  # First Last names
+            r'\b[A-Z][a-z]+\s+[A-Z][a-z]+\b',
         ]
         
         for pattern in name_patterns:
@@ -236,7 +236,7 @@ class CrossReferenceSystem:
         
         for result in search_results:
             if result.get('id') == document_id:
-                continue  # Skip self-reference
+                continue
             
             # Extract entities from the result document
             result_content = result.get('content', '')
@@ -395,7 +395,7 @@ class CrossReferenceSystem:
             
             similarity = self.calculate_similarity_score(query_entities, result_entities)
             
-            if similarity > 0.2:  # Lower threshold for suggestions
+            if similarity > 0.2:
                 suggestion = {
                     'document_id': result_id,
                     'file_name': result.get('metadata', {}).get('file_name', 'Unknown'),

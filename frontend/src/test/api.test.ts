@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { apiService } from '../lib/api'
 
-// Mock fetch globally
 const mockFetch = vi.fn()
 global.fetch = mockFetch
 

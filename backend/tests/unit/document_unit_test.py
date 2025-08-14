@@ -14,7 +14,6 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 from document_processing.document_processor import DocumentProcessor
 
-
 class TestDocumentProcessor(unittest.TestCase):
     """Basic test cases for DocumentProcessor class."""
     
@@ -144,7 +143,6 @@ class TestDocumentProcessor(unittest.TestCase):
         self.assertEqual(stats['document_types'], {})
         self.assertEqual(stats['file_types'], {})
         self.assertEqual(stats['total_size'], 0)
-
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)

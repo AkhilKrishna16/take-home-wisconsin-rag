@@ -21,7 +21,6 @@ export const ExportModal = ({ open, onOpenChange }: ExportModalProps) => {
       const result = await apiService.exportChat(format, includeSources);
       
       if (format === 'txt' || format === 'json') {
-        // Create and download file
         const blob = new Blob([result.data.content || JSON.stringify(result.data, null, 2)], {
           type: format === 'txt' ? 'text/plain' : 'application/json'
         });
@@ -34,7 +33,6 @@ export const ExportModal = ({ open, onOpenChange }: ExportModalProps) => {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
       } else {
-        // For PDF, show content in new window for printing
         const newWindow = window.open('', '_blank');
         if (newWindow) {
           newWindow.document.write(`
@@ -91,7 +89,7 @@ export const ExportModal = ({ open, onOpenChange }: ExportModalProps) => {
         </div>
         
         <div className="space-y-6">
-          {/* Format Selection */}
+          {}
           <div className="space-y-3">
             <label className="text-sm font-medium">Export Format</label>
             <div className="space-y-2">
@@ -125,7 +123,7 @@ export const ExportModal = ({ open, onOpenChange }: ExportModalProps) => {
             </div>
           </div>
 
-          {/* Options */}
+          {}
           <div className="space-y-3">
             <label className="text-sm font-medium">Options</label>
             <div className="flex items-center space-x-2">
@@ -142,7 +140,7 @@ export const ExportModal = ({ open, onOpenChange }: ExportModalProps) => {
             </div>
           </div>
 
-          {/* Export Button */}
+          {}
           <Button
             onClick={handleExport}
             disabled={exporting}

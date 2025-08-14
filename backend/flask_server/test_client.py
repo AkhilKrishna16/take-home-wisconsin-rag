@@ -56,7 +56,7 @@ class LegalRAGAPIClient:
                 if line:
                     line = line.decode('utf-8')
                     if line.startswith('data: '):
-                        data_str = line[6:]  # Remove 'data: ' prefix
+                        data_str = line[6:]
                         try:
                             yield json.loads(data_str)
                         except json.JSONDecodeError:
@@ -262,11 +262,11 @@ def test_document_upload(client: LegalRAGAPIClient):
             
             # Monitor task progress
             print("\n🔄 Monitoring task progress...")
-            max_attempts = 30  # Wait up to 30 seconds
+            max_attempts = 30
             attempts = 0
             
             while attempts < max_attempts:
-                time.sleep(1)  # Wait 1 second between checks
+                time.sleep(1)
                 attempts += 1
                 
                 task_result = client.get_task_status(task_id)

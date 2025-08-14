@@ -41,7 +41,7 @@ def display_source_documents(source_documents):
     print("📄 **Source Documents Used:**")
     print("=" * 50)
     
-    for doc in source_documents[:3]:  # Show top 3 documents
+    for doc in source_documents[:3]:
         print(f"📋 Source {doc['source_number']} (Score: {doc['relevance_score']:.3f}):")
         print(f"   Type: {doc['document_type']}")
         print(f"   Jurisdiction: {doc['jurisdiction']}")

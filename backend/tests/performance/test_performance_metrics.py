@@ -112,7 +112,7 @@ class PerformanceMetrics:
                     'top_3': 0.92,
                     'top_5': 0.95
                 },
-                'mrr_score': 0.88  # Mean Reciprocal Rank
+                'mrr_score': 0.88
             })
         else:
             # Actual testing with RAG system
@@ -461,7 +461,6 @@ class PerformanceMetrics:
         
         print("\n" + "=" * 60)
 
-
 def main():
     """Run comprehensive performance evaluation."""
     print("🚀 Legal RAG System - Performance Metrics Evaluation")
@@ -516,7 +515,6 @@ def main():
         print(f"❌ Performance evaluation failed: {e}")
         import traceback
         traceback.print_exc()
-
 
 if __name__ == "__main__":
     main()

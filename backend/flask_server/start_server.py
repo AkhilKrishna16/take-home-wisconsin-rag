@@ -47,7 +47,7 @@ def check_dependencies():
         'flask',
         'flask_cors',
         'openai',
-        'pinecone',  # Updated package name
+        'pinecone',
         'langchain',
         'langchain_openai'
     ]

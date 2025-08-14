@@ -226,7 +226,7 @@ def interactive_streaming_mode():
             model="gpt-3.5-turbo",
             max_tokens=800,
             temperature=0.3,
-            streaming=True  # Enable streaming
+            streaming=True
         )
         print("✅ Streaming LangChain chatbot ready!")
         print_help()

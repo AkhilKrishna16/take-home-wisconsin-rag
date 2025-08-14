@@ -60,7 +60,6 @@ export const DocumentUpload = ({ onUploadComplete }: DocumentUploadProps) => {
 
     setIsUploading(true);
     
-    // Create file objects for tracking
     const newFiles: UploadedFile[] = files.map(file => ({
       id: Math.random().toString(36).substr(2, 9),
       name: file.name,
@@ -72,13 +71,11 @@ export const DocumentUpload = ({ onUploadComplete }: DocumentUploadProps) => {
 
     setUploadedFiles(prev => [...prev, ...newFiles]);
 
-    // Upload each file
     for (const file of files) {
       const fileObj = newFiles.find(f => f.name === file.name);
       if (!fileObj) continue;
 
       try {
-        // Update status to processing
         setUploadedFiles(prev => 
           prev.map(f => 
             f.id === fileObj.id 
@@ -87,14 +84,12 @@ export const DocumentUpload = ({ onUploadComplete }: DocumentUploadProps) => {
           )
         );
 
-        // Upload to backend
         await apiService.uploadDocument(file, {
           document_type: 'training',
           jurisdiction: 'federal',
           law_status: 'current'
         });
 
-        // Update status to completed
         setUploadedFiles(prev => 
           prev.map(f => 
             f.id === fileObj.id 
@@ -161,7 +156,7 @@ export const DocumentUpload = ({ onUploadComplete }: DocumentUploadProps) => {
 
   return (
     <div className="space-y-4">
-      {/* Drag and Drop Area */}
+      {}
       <div
         className={cn(
           "relative rounded-lg border-2 border-dashed p-8 text-center transition-colors",
@@ -195,7 +190,7 @@ export const DocumentUpload = ({ onUploadComplete }: DocumentUploadProps) => {
         />
       </div>
 
-      {/* Uploaded Files List */}
+      {}
       {uploadedFiles.length > 0 && (
         <div className="space-y-3">
           <h4 className="font-medium">Uploaded Files</h4>

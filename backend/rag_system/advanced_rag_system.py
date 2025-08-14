@@ -118,7 +118,6 @@ class LegalQueryEnhancer:
             'infra': 'below'
         }
         
-        # Common legal misspellings
         self.spell_corrections = {
             'amendmant': 'amendment',
             'ammendment': 'amendment',
@@ -153,13 +152,18 @@ class LegalQueryEnhancer:
         }
     
     def expand_query(self, query: str) -> QueryEnhancement:
-        """Enhance query with legal synonyms, abbreviations, and corrections."""
+        """
+        Enhance a legal query with synonyms, abbreviations, and corrections.
         
-        # Convert to lowercase for processing
+        Args:
+            query: The original legal query string
+            
+        Returns:
+            QueryEnhancement object with expanded and corrected query
+        """
         original_query = query
         query_lower = query.lower()
         
-        # Expand abbreviations
         expanded_query = query
         abbreviations_found = {}
         for abbr, full_form in self.abbreviations.items():
@@ -206,12 +210,12 @@ class CitationChainManager:
     def __init__(self):
         # Patterns for finding citations
         self.citation_patterns = [
-            r'see also § (\d+\.\d+)',  # "see also § 940.01"
-            r'see § (\d+\.\d+)',       # "see § 940.01"
-            r'cf\. § (\d+\.\d+)',      # "cf. § 940.01"
-            r'(\d+\.\d+[A-Z]*)',       # Statute numbers like "1.1A"
-            r'(\d+\s+U\.S\.C\.\s+\d+)', # "18 U.S.C. 2703"
-            r'([A-Z][a-z]+\s+v\.\s+[A-Z][a-z]+)', # Case names like "Smith v. Maryland"
+            r'see also § (\d+\.\d+)',
+            r'see § (\d+\.\d+)',
+            r'cf\. § (\d+\.\d+)',
+            r'(\d+\.\d+[A-Z]*)',
+            r'(\d+\s+U\.S\.C\.\s+\d+)',
+            r'([A-Z][a-z]+\s+v\.\s+[A-Z][a-z]+)',
         ]
         
         # Citation relationships (parent -> children)
@@ -299,7 +303,7 @@ class ContextWindowManager:
             return ""
         
         context_parts = []
-        for citation in citations[:5]:  # Limit to 5 citations
+        for citation in citations[:5]:
             context_parts.append(f"- {citation}")
         
         return "\n".join(context_parts)
@@ -334,7 +338,7 @@ class HybridSearchEngine:
         # Perform semantic search
         semantic_results = self.vector_db.search_legal_documents(
             enhanced_query.enhanced_query, 
-            top_k=max_results * 2,  # Get more results for filtering
+            top_k=max_results * 2,
             include_metadata=True
         )
         
@@ -477,7 +481,7 @@ class HybridSearchEngine:
         # Check for enhanced terms
         for term in enhanced_query.expanded_terms:
             if term.lower() in content:
-                matches += 0.5  # Bonus for expanded terms
+                matches += 0.5
         
         return min(matches / len(query_terms), 1.0)
     
@@ -506,11 +510,11 @@ class HybridSearchEngine:
         superseded_count = sum(1 for indicator in superseded_indicators if indicator in content)
         
         if superseded_count > current_count:
-            return 0.3  # Penalty for superseded law
+            return 0.3
         elif current_count > superseded_count:
-            return 1.0  # Bonus for current law
+            return 1.0
         
-        return 0.7  # Neutral score
+        return 0.7
     
     def _calculate_document_type_score(self, metadata: Dict[str, Any]) -> float:
         """Calculate document type relevance score."""

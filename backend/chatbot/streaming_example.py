@@ -82,7 +82,7 @@ def word_by_word_streaming():
                 # Add a small delay to make streaming more visible
                 content = chunk['content']
                 print(content, end='', flush=True)
-                time.sleep(0.05)  # 50ms delay
+                time.sleep(0.05)
                 
             elif chunk['type'] == 'complete':
                 print("\n\n✅ Word-by-word streaming completed!")

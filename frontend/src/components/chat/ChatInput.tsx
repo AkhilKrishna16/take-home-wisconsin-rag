@@ -3,13 +3,30 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Send, Square } from "lucide-react";
 
+/**
+ * Props for the ChatInput component
+ */
 interface ChatInputProps {
+  /** Callback when user sends a message */
   onSend: (text: string) => void;
+  /** Optional callback to stop generation */
   onStop?: () => void;
+  /** Whether the input is disabled */
   disabled?: boolean;
+  /** Whether AI is currently generating a response */
   isGenerating?: boolean;
 }
 
+/**
+ * Chat input component with send button and textarea
+ * 
+ * Features:
+ * - Auto-expanding textarea
+ * - Enter to send, Shift+Enter for new line
+ * - Stop generation button when AI is responding
+ * - Mobile-friendly touch handling
+ * - Disabled state during processing
+ */
 export const ChatInput = ({ onSend, onStop, disabled = false, isGenerating = false }: ChatInputProps) => {
   const [value, setValue] = useState("");
 
@@ -37,9 +54,7 @@ export const ChatInput = ({ onSend, onStop, disabled = false, isGenerating = fal
             }
           }}
           onTouchEnd={(e) => {
-            // Mobile-friendly touch handling
             if (e.currentTarget.value.trim() && !disabled) {
-              // Small delay to prevent accidental submissions
               setTimeout(() => {
                 if (e.currentTarget.value.trim() === value.trim()) {
                   submit();

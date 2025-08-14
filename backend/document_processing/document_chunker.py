@@ -539,7 +539,6 @@ class DocumentChunker:
         """Extract policy numbers from text."""
         return re.findall(r'Policy\s+No\.?\s*([A-Z0-9\-]+)', text, re.IGNORECASE)
 
-
 if __name__ == "__main__":
     # Example usage
     chunker = DocumentChunker(chunk_size=1000, chunk_overlap=200)

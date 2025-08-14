@@ -134,7 +134,7 @@ class TestRunner:
                         cwd=self.backend_dir,
                         capture_output=True,
                         text=True,
-                        timeout=300  # 5 minutes for performance tests
+                        timeout=300
                     )
                     
                     duration = time.time() - start_time
@@ -293,7 +293,6 @@ class TestRunner:
         print(f"\n⏱️ Total Test Duration: {total_duration:.1f} seconds")
         print(f"📅 Completed at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         
-
 def main():
     """Main entry point."""
     runner = TestRunner()
@@ -316,7 +315,6 @@ def main():
             sys.exit(1)
     else:
         runner.run_all_tests()
-
 
 if __name__ == "__main__":
     main()

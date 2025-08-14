@@ -47,8 +47,8 @@ def explore_database():
         # Fetch all vectors from the index
         # Note: This is a simplified approach - in production you'd use proper pagination
         all_vectors = vdb.index.query(
-            vector=[0.0] * 384,  # Dummy vector to get all results
-            top_k=1000,  # Get up to 1000 vectors
+            vector=[0.0] * 384,
+            top_k=1000,
             include_metadata=True
         )
         
@@ -97,7 +97,7 @@ def explore_database():
         # Show detailed chunk information
         print_separator("DETAILED CHUNK ANALYSIS")
         
-        for i, match in enumerate(all_vectors.matches[:5]):  # Show first 5 chunks
+        for i, match in enumerate(all_vectors.matches[:5]):
             print(f"\n🔍 Chunk {i+1}:")
             metadata = match.metadata
             
@@ -148,7 +148,7 @@ def explore_database():
                 results = vdb.search_legal_documents(query, top_k=3, filter_metadata=filter_metadata)
                 print(f"   📊 Found {len(results)} results")
                 
-                for j, result in enumerate(results[:2]):  # Show top 2 results
+                for j, result in enumerate(results[:2]):
                     content_preview = result.metadata.get('content', '')[:100]
                     print(f"   {j+1}. Score: {result.score:.3f} | {content_preview}...")
                     

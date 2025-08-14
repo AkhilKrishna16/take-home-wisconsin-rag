@@ -13,11 +13,9 @@ from pathlib import Path
 import json
 from datetime import datetime
 
-# Load environment variables
 from dotenv import load_dotenv
 load_dotenv()
 
-# Pinecone imports
 try:
     import pinecone
     from pinecone import Pinecone, ServerlessSpec
@@ -26,7 +24,6 @@ except ImportError:
     PINECONE_AVAILABLE = False
     print("Pinecone not available. Install with: pip install pinecone")
 
-# Embeddings imports
 try:
     from sentence_transformers import SentenceTransformer
     EMBEDDINGS_AVAILABLE = True
@@ -34,7 +31,6 @@ except ImportError:
     EMBEDDINGS_AVAILABLE = False
     print("Sentence transformers not available. Install with: pip install sentence-transformers")
 
-# Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -54,7 +50,15 @@ class LegalVectorDatabase:
     _initialized = False
     
     def __new__(cls, index_name: str = "legal-documents"):
-        """Singleton pattern to ensure only one instance exists."""
+        """
+        Singleton pattern to ensure only one vector database instance exists.
+        
+        Args:
+            index_name: Name of the Pinecone index to use
+            
+        Returns:
+            Single instance of LegalVectorDatabase
+        """
         if cls._instance is None:
             cls._instance = super(LegalVectorDatabase, cls).__new__(cls)
         return cls._instance
@@ -66,7 +70,6 @@ class LegalVectorDatabase:
         Args:
             index_name: Name of the Pinecone index
         """
-        # Only initialize once
         if self._initialized:
             return
             
@@ -75,7 +78,6 @@ class LegalVectorDatabase:
         self.index = None
         self.embedding_model = None
         
-        # Initialize Pinecone
         self._initialize_pinecone()
         
         # Initialize embedding model
@@ -455,8 +457,8 @@ class LegalVectorDatabase:
         try:
             # Get all vectors with metadata
             results = self.index.query(
-                vector=[0.0] * 384,  # Dummy vector for fetching all
-                top_k=10000,  # Large number to get all documents
+                vector=[0.0] * 384,
+                top_k=10000,
                 include_metadata=True
             )
             
@@ -507,7 +509,6 @@ class LegalVectorDatabase:
         except Exception as e:
             logger.error(f"Failed to clear index: {e}")
             return False
-
 
 # Example usage and testing
 if __name__ == "__main__":

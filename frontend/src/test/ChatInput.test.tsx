@@ -57,11 +57,9 @@ describe('ChatInput', () => {
     
     const sendButton = screen.getByRole('button', { name: /send/i })
     
-    // Try with empty text
     await user.click(sendButton)
     expect(mockOnSend).not.toHaveBeenCalled()
     
-    // Try with whitespace only
     const textarea = screen.getByRole('textbox')
     await user.type(textarea, '   ')
     await user.click(sendButton)
