@@ -1,0 +1,79 @@
+{
+  "file_path": "uploads/e3510370-cb54-451a-a9d0-7fde5ceb78ee_Miranda_Rights.pdf",
+  "file_name": "e3510370-cb54-451a-a9d0-7fde5ceb78ee_Miranda_Rights.pdf",
+  "file_type": "pdf",
+  "document_type": "training",
+  "processed_at": "2025-08-13T19:44:42.036460",
+  "file_hash": "8becfec4cf8ff8724bfdbb8f0fa5a1883c6dd65012a5625c97375c060e258a14",
+  "metadata": {
+    "file_size": 284440,
+    "created_date": "2025-08-13T19:44:40.713761",
+    "modified_date": "2025-08-13T19:44:40.713761",
+    "pdf_metadata": {
+      "/Producer": "Microsoft® Word 2016",
+      "/Creator": "Microsoft® Word 2016",
+      "/CreationDate": "D:20191104133008-08'00'",
+      "/ModDate": "D:20191104133008-08'00'"
+    },
+    "page_count": 1
+  },
+  "content": "Miranda Rights \n\nAnyone who has watched a television show about law enforcement has a heard a police officer \nread the suspect his or her Miranda Rights. After placing the suspect under arrest, the officer \nwill say something similar to: “You have the right to remain silent. Anything you say can and \nwill be used against you in a court of law. You have a right to an attorney. If you cannot afford \nan attorney, one will be appointed for you.” \n\nMiranda Rights were created in 1966 as a result of the United States Supreme Court case of \nMiranda v. Arizona. The Miranda warning is intended to protect the suspect’s Fifth Amendment \nright to refuse to answer self-incriminating questions. \n\nWhat do my rights mean? \n\nWhen contacted by the police, individuals have the duty to stop and if requested to identify \nthemselves.  That is all. Although it would best serve to be polite and courteous.  \n\nYou have the right to remain silent. This means it is your constitutionally protected right. To \nexercise your right, you must remain silent. The way to ensure protection of this right is to state: \n“I am only willing to speak with you if I have an attorney present.”  It is the request for an \nattorney that protects further questioning. \n\nAnything you say can and will be used against you in a court of law.  This means what it says.  \nThere is no statement that can be made that will benefit you.  You are being told, all statements \nwill be used against you.  There is no assurance that a helpful statement will be reported \naccurately, if at all. \n\nYou have a right to an attorney. This means it is your constitutionally protected right. You may \nask for an attorney, and keep asking for an attorney – meanwhile remember, you have the right \nto remain silent. \n\nIf you cannot afford an attorney, one will be appointed for you. This means it is your \nconstitutionally protected right, whether or not you can afford an attorney.  It means what it says.  \nYou may ask for an attorney, and keep asking for an attorney – meanwhile remember, you have \nthe right to remain silent. \n\n \n \n \n \n \n \n\f",
+  "summary": "Miranda Rights \n\nAnyone who has watched a television show about law enforcement has a heard a police officer \nread the suspect his or her Miranda Rights. After placing the suspect under arrest, the officer \nwill say something similar to: “You have the right to remain silent. Anything you say can and \nwill be used against you in a court of law. You have a right to an attorney.",
+  "key_entities": {
+    "dates": [],
+    "names": [],
+    "organizations": [],
+    "locations": [],
+    "references": []
+  },
+  "structure": {
+    "sections": [],
+    "headings": [],
+    "paragraphs": 10,
+    "word_count": 362
+  },
+  "tags": [
+    "education",
+    "learning",
+    "training"
+  ],
+  "chunks": [
+    {
+      "content": "Miranda Rights\nAnyone who has watched a television show about law enforcement has a heard a police officer\nread the suspect his or her Miranda Rights. After placing the suspect under arrest, the officer\nwill say something similar to: “You have the right to remain silent. Anything you say can and\nwill be used against you in a court of law. You have a right to an attorney. If you cannot afford\nan attorney, one will be appointed for you.”\nMiranda Rights were created in 1966 as a result of the United States Supreme Court case of\nMiranda v. Arizona. The Miranda warning is intended to protect the suspect’s Fifth Amendment\nright to refuse to answer self-incriminating questions.\nWhat do my rights mean?\nWhen contacted by the police, individuals have the duty to stop and if requested to identify\nthemselves.  That is all. Although it would best serve to be polite and courteous.\nYou have the right to remain silent. This means it is your constitutionally protected right. To\nexercise your right, you must remain silent.",
+      "metadata": {
+        "module_title": "",
+        "learning_objectives": [],
+        "key_terms": []
+      },
+      "chunk_type": "training_module",
+      "module": null,
+      "start_line": 4,
+      "end_line": 17
+    },
+    {
+      "content": "The way to ensure protection of this right is to state:\n\nexercise your right, you must remain silent. The way to ensure protection of this right is to state:\n“I am only willing to speak with you if I have an attorney present.”  It is the request for an\nattorney that protects further questioning.\nAnything you say can and will be used against you in a court of law.  This means what it says.\nThere is no statement that can be made that will benefit you.  You are being told, all statements\nwill be used against you.  There is no assurance that a helpful statement will be reported\naccurately, if at all.\nYou have a right to an attorney. This means it is your constitutionally protected right. You may\nask for an attorney, and keep asking for an attorney – meanwhile remember, you have the right\nto remain silent.\nIf you cannot afford an attorney, one will be appointed for you. This means it is your\nconstitutionally protected right, whether or not you can afford an attorney.",
+      "metadata": {
+        "module_title": "",
+        "learning_objectives": [],
+        "key_terms": []
+      },
+      "chunk_type": "training_module",
+      "module": null,
+      "start_line": 18,
+      "end_line": 31
+    },
+    {
+      "content": "It means what it says.\n\nconstitutionally protected right, whether or not you can afford an attorney.  It means what it says.\nYou may ask for an attorney, and keep asking for an attorney – meanwhile remember, you have\nthe right to remain silent.",
+      "metadata": {
+        "module_title": "",
+        "learning_objectives": [],
+        "key_terms": []
+      },
+      "chunk_type": "training_module",
+      "module": null,
+      "start_line": 37,
+      "end_line": 42
+    }
+  ],
+  "chunk_count": 3
+}

@@ -280,12 +280,23 @@ export const ChatLayout = () => {
               section: doc.section || 'General',
               citations: doc.citations || [],
               content_preview: doc.content_preview || 'No preview available',
-              url: '#',
+              url: `http://localhost:5000/api/documents/download/${doc.original_file_name || doc.file_name || `${doc.source_number || index + 1}.pdf`}`,
               source_number: doc.source_number || index + 1,
               filename: doc.original_file_name || doc.file_name,
             }));
             console.log('Processed source documents:', responseSources.map(s => ({ title: s.title, filename: s.filename })));
             setCurrentSources(responseSources);
+            
+            // CRITICAL: Attach sources to the assistant message in the messages state
+            setMessages((m) => {
+              const newMessages = [...m];
+              const lastMessage = newMessages[newMessages.length - 1];
+              if (lastMessage && lastMessage.role === 'assistant') {
+                lastMessage.sources = responseSources;
+                console.log('Sources attached to assistant message:', responseSources.length, 'sources');
+              }
+              return newMessages;
+            });
           }
           setLoading(false);
           setAbortController(null);
@@ -353,6 +364,13 @@ export const ChatLayout = () => {
     }
     
     const conversationMessages = filterConversationMessages(messagesToUse);
+    
+    // Debug: Check if messages have sources
+    const messagesWithSources = conversationMessages.filter(m => m.sources && m.sources.length > 0);
+    console.log('Auto-saving chat with', messagesWithSources.length, 'messages that have sources');
+    messagesWithSources.forEach((msg, i) => {
+      console.log(`Message ${i} sources:`, msg.sources?.map(s => s.title));
+    });
     
     const userMessages = conversationMessages.filter(m => m.role === 'user');
     if (userMessages.length === 0) {
@@ -427,7 +445,12 @@ export const ChatLayout = () => {
           content: formatTextWithBullets(exchange.answer || "No answer available"),
         };
 
-        if (exchange.context) {
+        // First, try to use the stored sources array (new format)
+        if (exchange.sources && Array.isArray(exchange.sources)) {
+          assistantMessage.sources = exchange.sources;
+        }
+        // Fallback to parsing context string (legacy format)
+        else if (exchange.context) {
           const contextLines = exchange.context.split('\n');
           const sources: any[] = [];
           let currentSource: any = {};
@@ -507,10 +530,12 @@ export const ChatLayout = () => {
           assistantMessage.sources = sources;
         }
 
-        if (exchange.confidence_score !== undefined || exchange.safety_warnings) {
+        // Add metadata if available (includes confidence score and safety warnings)
+        if (exchange.metadata || exchange.confidence_score !== undefined || exchange.safety_warnings) {
           assistantMessage.metadata = {
-            confidence_score: exchange.confidence_score,
-            safety_warnings: exchange.safety_warnings,
+            confidence_score: exchange.metadata?.confidence_score || exchange.confidence_score,
+            safety_warnings: exchange.metadata?.safety_warnings || exchange.safety_warnings,
+            ...exchange.metadata  // Include any other metadata fields
           };
         }
 
@@ -520,7 +545,17 @@ export const ChatLayout = () => {
 
     console.log('Loaded messages:', loadedMessages);
     setMessages(loadedMessages);
-            setCurrentSessionName(chatData.chat_name || chatData.session_name);
+    setCurrentSessionName(chatData.chat_name || chatData.session_name);
+    
+    // CRITICAL FIX: Extract sources from the latest assistant message and set to currentSources
+    // This ensures the CONTEXT SOURCES panel displays the sources from the loaded chat
+    const lastAssistantMessage = loadedMessages.filter(m => m.role === 'assistant').pop();
+    if (lastAssistantMessage && lastAssistantMessage.sources && lastAssistantMessage.sources.length > 0) {
+      setCurrentSources(lastAssistantMessage.sources);
+      console.log('Loaded sources for context panel:', lastAssistantMessage.sources.length, 'sources');
+    } else {
+      setCurrentSources([]);
+    }
     
     setAutoSaveEnabled(true);
     
@@ -571,13 +606,9 @@ export const ChatLayout = () => {
           sources.push(currentSource);
         }
         
-        setCurrentSources(sources);
-        console.log('Restored sources:', sources);
-      } else {
-        setCurrentSources([]);
+        // Legacy context parsing - now handled by structured sources above
+        // setCurrentSources(sources); // Commented out - using structured sources now
       }
-    } else {
-      setCurrentSources([]);
     }
     
     setShowHistoryPanel(false);

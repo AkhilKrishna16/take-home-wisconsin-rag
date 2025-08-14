@@ -1,0 +1,107 @@
+{
+  "session_name": "Many Hours Training",
+  "chat_name": "Many Hours Training",
+  "created_at": "2025-08-13T20:03:52.713368",
+  "history": [
+    {
+      "question": "how many hours of training are required for anti-bias (racism, discrimination, etc.) if i am a milwaukee police office?",
+      "answer": "Milwaukee Police Department requires every member to annually complete at least four (4) hours of bias training, which includes training on anti-racism and anti-discrimination policies (Source 1). This training is essential to ensure that members are competent with department policies and principles of fair and impartial policing.",
+      "timestamp": "2025-08-13T20:03:52.713352",
+      "context": "Source 1 (Relevance: 0.66)\nDocument Type: training_module\nTitle: 72be8582-dbaa-4d8f-96a2-e7f47d9faa22_082-TRAININGANDCAREERDEVELOPMENT.pdf\nJurisdiction: unknown\nStatus: current\nSection: Unknown\nContent: In  addition,  the  purpose  of  this  standard  operating\nprocedure is to ensure that the members of the Milwaukee Police Department are verifiably\n\nprocedure is to ensure that the members of the Mil...\nCitations: 082.05\n\nSource 2 (Relevance: 0.60)\nDocument Type: training_module\nTitle: 72be8582-dbaa-4d8f-96a2-e7f47d9faa22_082-TRAININGANDCAREERDEVELOPMENT.pdf\nJurisdiction: state\nStatus: current\nSection: Unknown\nContent: MILWAUKEE POLICE DEPARTMENT\nSTANDARD OPERATING PROCEDURE\n082 \u2013 TRAINING AND CAREER DEVELOPMENT\nGENERAL ORDER: 2024-20\nISSUED: April 10, 2024\nEFFECTIVE: April 10, 2024\nACTION: Amends General Order 2024...\nCitations: 12.2, 13.2, 082.00, 12.1\n\nSource 3 (Relevance: 0.59)\nDocument Type: training_module\nTitle: 72be8582-dbaa-4d8f-96a2-e7f47d9faa22_082-TRAININGANDCAREERDEVELOPMENT.pdf\nJurisdiction: unknown\nStatus: current\nSection: Unknown\nContent: Department  members  shall  follow  the  directives  of  their  bureau  commanders  and\ncommanding officers when requesting training. When minimum staffing allows, supervisors\nshould honor members\u2019 re...\nCitations: 005.00\n\nSource 4 (Relevance: 0.57)\nDocument Type: training_module\nTitle: 72be8582-dbaa-4d8f-96a2-e7f47d9faa22_082-TRAININGANDCAREERDEVELOPMENT.pdf\nJurisdiction: state\nStatus: current\nSection: Unknown\nContent: The training director at the Training Division shall ensure that an in-service curriculum\n\nA.  The training director at the Training Division shall ensure that an in-service curriculum\nis designed and...\nCitations: 165.85\n\nSource 5 (Relevance: 0.53)\nDocument Type: training_module\nTitle: 72be8582-dbaa-4d8f-96a2-e7f47d9faa22_082-TRAININGANDCAREERDEVELOPMENT.pdf\nJurisdiction: state\nStatus: current\nSection: Unknown\nContent: Members  who  do  not  complete  the  state\u2019s  minimum  training  requirements  face\ndecertification  by  the  LESB  and  are  subject  to  discipline  up  to  and  including\n\ndecertification  by  the...\n",
+      "sources": [
+        {
+          "id": "1",
+          "title": "72be8582-dbaa-4d8f-96a2-e7f47d9faa22_082-TRAININGANDCAREERDEVELOPMENT.pdf",
+          "type": "training_module",
+          "jurisdiction": "unknown",
+          "status": "current",
+          "score": 0.6572777572421052,
+          "section": "Unknown",
+          "citations": [
+            "082.05"
+          ],
+          "content_preview": "In  addition,  the  purpose  of  this  standard  operating\nprocedure is to ensure that the members of the Milwaukee Police Department are verifiably\n\nprocedure is to ensure that the members of the Mil...",
+          "url": "http://localhost:5000/api/documents/download/72be8582-dbaa-4d8f-96a2-e7f47d9faa22_082-TRAININGANDCAREERDEVELOPMENT.pdf",
+          "source_number": 1,
+          "filename": "72be8582-dbaa-4d8f-96a2-e7f47d9faa22_082-TRAININGANDCAREERDEVELOPMENT.pdf"
+        },
+        {
+          "id": "2",
+          "title": "72be8582-dbaa-4d8f-96a2-e7f47d9faa22_082-TRAININGANDCAREERDEVELOPMENT.pdf",
+          "type": "training_module",
+          "jurisdiction": "state",
+          "status": "current",
+          "score": 0.5951787695578948,
+          "section": "Unknown",
+          "citations": [
+            "12.2",
+            "13.2",
+            "082.00",
+            "12.1"
+          ],
+          "content_preview": "MILWAUKEE POLICE DEPARTMENT\nSTANDARD OPERATING PROCEDURE\n082 \u2013 TRAINING AND CAREER DEVELOPMENT\nGENERAL ORDER: 2024-20\nISSUED: April 10, 2024\nEFFECTIVE: April 10, 2024\nACTION: Amends General Order 2024...",
+          "url": "http://localhost:5000/api/documents/download/72be8582-dbaa-4d8f-96a2-e7f47d9faa22_082-TRAININGANDCAREERDEVELOPMENT.pdf",
+          "source_number": 2,
+          "filename": "72be8582-dbaa-4d8f-96a2-e7f47d9faa22_082-TRAININGANDCAREERDEVELOPMENT.pdf"
+        },
+        {
+          "id": "3",
+          "title": "72be8582-dbaa-4d8f-96a2-e7f47d9faa22_082-TRAININGANDCAREERDEVELOPMENT.pdf",
+          "type": "training_module",
+          "jurisdiction": "unknown",
+          "status": "current",
+          "score": 0.5929099783578948,
+          "section": "Unknown",
+          "citations": [
+            "005.00"
+          ],
+          "content_preview": "Department  members  shall  follow  the  directives  of  their  bureau  commanders  and\ncommanding officers when requesting training. When minimum staffing allows, supervisors\nshould honor members\u2019 re...",
+          "url": "http://localhost:5000/api/documents/download/72be8582-dbaa-4d8f-96a2-e7f47d9faa22_082-TRAININGANDCAREERDEVELOPMENT.pdf",
+          "source_number": 3,
+          "filename": "72be8582-dbaa-4d8f-96a2-e7f47d9faa22_082-TRAININGANDCAREERDEVELOPMENT.pdf"
+        },
+        {
+          "id": "4",
+          "title": "72be8582-dbaa-4d8f-96a2-e7f47d9faa22_082-TRAININGANDCAREERDEVELOPMENT.pdf",
+          "type": "training_module",
+          "jurisdiction": "state",
+          "status": "current",
+          "score": 0.5672831120421052,
+          "section": "Unknown",
+          "citations": [
+            "165.85"
+          ],
+          "content_preview": "The training director at the Training Division shall ensure that an in-service curriculum\n\nA.  The training director at the Training Division shall ensure that an in-service curriculum\nis designed and...",
+          "url": "http://localhost:5000/api/documents/download/72be8582-dbaa-4d8f-96a2-e7f47d9faa22_082-TRAININGANDCAREERDEVELOPMENT.pdf",
+          "source_number": 4,
+          "filename": "72be8582-dbaa-4d8f-96a2-e7f47d9faa22_082-TRAININGANDCAREERDEVELOPMENT.pdf"
+        },
+        {
+          "id": "5",
+          "title": "72be8582-dbaa-4d8f-96a2-e7f47d9faa22_082-TRAININGANDCAREERDEVELOPMENT.pdf",
+          "type": "training_module",
+          "jurisdiction": "state",
+          "status": "current",
+          "score": 0.5322176636421053,
+          "section": "Unknown",
+          "citations": [],
+          "content_preview": "Members  who  do  not  complete  the  state\u2019s  minimum  training  requirements  face\ndecertification  by  the  LESB  and  are  subject  to  discipline  up  to  and  including\n\ndecertification  by  the...",
+          "url": "http://localhost:5000/api/documents/download/72be8582-dbaa-4d8f-96a2-e7f47d9faa22_082-TRAININGANDCAREERDEVELOPMENT.pdf",
+          "source_number": 5,
+          "filename": "72be8582-dbaa-4d8f-96a2-e7f47d9faa22_082-TRAININGANDCAREERDEVELOPMENT.pdf"
+        }
+      ],
+      "metadata": {
+        "confidence_score": 0.6507049796696843,
+        "safety_warnings": {
+          "use_of_force_warning": false,
+          "jurisdiction_warning": true,
+          "outdated_warning": false,
+          "low_confidence_warning": true,
+          "legal_disclaimer": false
+        }
+      }
+    }
+  ],
+  "total_exchanges": 1
+}

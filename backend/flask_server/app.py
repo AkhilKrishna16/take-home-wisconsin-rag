@@ -565,30 +565,48 @@ def download_document(filename):
             pass
         
         # Create a comprehensive mapping from processed filenames to actual files
-        # This handles the case where files were moved from uploads/ to pdfs/
         comprehensive_mapping = {
-                     # Map processed filenames to actual files in pdfs/
-                     '46F874E8-7C26-469A-AEDE-D944E5637B12_3.PDF': '1.pdf',
-                     '46F874E8-7C26-469A-AEDE-D944E5637B12_3.pdf': '1.pdf',
-                     '46f874e8-7c26-469a-aede-d944e5637b12_3.pdf': '1.pdf',
-                     'C74C1A87-8264-4600-B68C-906E1459C20D_2.PDF': '2.pdf',
-                     'C74C1A87-8264-4600-B68C-906E1459C20D_2.pdf': '2.pdf',
-                     'c74c1a87-8264-4600-b68c-906e1459c20d_2.pdf': '2.pdf',
-                     'MIRANDAWARNINGFINAL.PDF': 'mirandawarningfinal.pdf',
-                     'MIRANDAWARNINGFINAL.pdf': 'mirandawarningfinal.pdf',
-                     'mirandawarningfinal.pdf': 'mirandawarningfinal.pdf',
-                     # Add mappings for files that were in uploads/ but are now in pdfs/
-                     '287EC2E6-CCBB-4512-ADAA-BEE90E424B46_MIRANDAWARNINGFINAL.PDF': 'mirandawarningfinal.pdf',
-                     '287EC2E6-CCBB-4512-ADAA-BEE90E424B46_MIRANDAWARNINGFINAL.pdf': 'mirandawarningfinal.pdf',
-                     '287ec2e6-ccbb-4512-adaa-bee90e424b46_mirandawarningfinal.pdf': 'mirandawarningfinal.pdf',
-                     # Handle the truncated filename case - map to existing Wisconsin Statutes file
-                     'DAF-468E-B9C0-C1F_70.PDF': '1.pdf',
-                     'DAF-468E-B9C0-C1F_70.pdf': '1.pdf',
-                     'daf-468e-b9c0-c1f_70.pdf': '1.pdf',
-                     '110D7158-F0AF-468E-B9C0-AADF25337C1F_70.PDF': '1.pdf',
-                     '110D7158-F0AF-468E-B9C0-AADF25337C1F_70.pdf': '1.pdf',
-                     '110d7158-f0af-468e-b9c0-aadf25337c1f_70.pdf': '1.pdf',
-                 }
+            # Original mappings
+            '46F874E8-7C26-469A-AEDE-D944E5637B12_3.PDF': '3.pdf',
+            '46F874E8-7C26-469A-AEDE-D944E5637B12_3.pdf': '3.pdf',
+            '46f874e8-7c26-469a-aede-d944e5637b12_3.pdf': '3.pdf',
+            '87d45a97-2d41-4b6f-8fcb-b27d97a350a1_3.pdf': '3.pdf',
+            'C74C1A87-8264-4600-B68C-906E1459C20D_2.PDF': '2.pdf',
+            'C74C1A87-8264-4600-B68C-906E1459C20D_2.pdf': '2.pdf',
+            'c74c1a87-8264-4600-b68c-906e1459c20d_2.pdf': '2.pdf',
+            '6f6d96df-715e-4b0c-ba0b-79effc4ff510_1.pdf': '1.pdf',
+            
+            # Miranda warning mappings
+            'MIRANDAWARNINGFINAL.PDF': 'Miranda Rights.pdf',
+            'MIRANDAWARNINGFINAL.pdf': 'Miranda Rights.pdf',
+            'mirandawarningfinal.pdf': 'Miranda Rights.pdf',
+            '287EC2E6-CCBB-4512-ADAA-BEE90E424B46_MIRANDAWARNINGFINAL.PDF': 'Miranda Rights.pdf',
+            '287EC2E6-CCBB-4512-ADAA-BEE90E424B46_MIRANDAWARNINGFINAL.pdf': 'Miranda Rights.pdf',
+            '287ec2e6-ccbb-4512-adaa-bee90e424b46_mirandawarningfinal.pdf': 'Miranda Rights.pdf',
+            '449d6d82-c950-46cc-9595-418ce1098578_mirandawarningfinal.pdf': 'Miranda Rights.pdf',
+            'miranda-warning-waiver.pdf': 'miranda-warning-waiver.pdf',
+            
+            # Wisconsin Statutes and numbered documents
+            '110D7158-F0AF-468E-B9C0-AADF25337C1F_70.PDF': '1.pdf',
+            '110D7158-F0AF-468E-B9C0-AADF25337C1F_70.pdf': '1.pdf',
+            '110d7158-f0af-468e-b9c0-aadf25337c1f_70.pdf': '1.pdf',
+            
+            # New numbered document mappings
+            '1754f54d-ca36-4c11-adee-d82f9a748d22_13.pdf': '13.pdf',
+            '4e5be544-26e4-4632-b17e-136db2b0441d_23.pdf': '23.pdf',
+            'a9094043-3db5-4940-94e0-18dbed7347ab_35.pdf': '35.pdf',
+            '61617043-8138-4879-b321-6f16e3c18e51_36.pdf': '36.pdf',
+            '1325f643-f210-4c21-bec1-59e61fb2c82a_41.pdf': '41.pdf',
+            'ada74109-23dc-4317-94a6-6819510d4e4a_46.pdf': '46.pdf',
+            '8693f060-9fe9-458c-88d5-ffe2db98bbc3_59.pdf': '59.pdf',
+            # Add missing mappings for 5.pdf and 69.pdf
+            '_5.pdf': '5.pdf',
+            '_69.pdf': '69.pdf',
+            
+            # Special documents
+            '72be8582-dbaa-4d8f-96a2-e7f47d9faa22_082-TRAININGANDCAREERDEVELOPMENT.pdf': '082-TRAININGANDCAREERDEVELOPMENT.pdf',
+            'yj-standards.pdf': 'yj-standards.pdf',
+        }
         
         # Try to map the filename to an actual file using comprehensive mapping
         # Try exact match first, then uppercase, then lowercase
@@ -601,11 +619,35 @@ def download_document(filename):
             # Try pattern-based matching as fallback
             filename_lower = filename.lower()
             if '46f874e8-7c26-469a-aede' in filename_lower or '_3' in filename_lower:
-                actual_filename = '1.pdf'
+                actual_filename = '3.pdf'
             elif 'c74c1a87-8264-4600-b68c' in filename_lower or '_2' in filename_lower:
                 actual_filename = '2.pdf'
+            elif '6f6d96df-715e-4b0c-ba0b' in filename_lower or '_1' in filename_lower:
+                actual_filename = '1.pdf'
             elif 'miranda' in filename_lower:
-                actual_filename = 'mirandawarningfinal.pdf'
+                actual_filename = 'Miranda Rights.pdf'
+            elif '_13' in filename_lower:
+                actual_filename = '13.pdf'
+            elif '_23' in filename_lower:
+                actual_filename = '23.pdf'
+            elif '_35' in filename_lower:
+                actual_filename = '35.pdf'
+            elif '_36' in filename_lower:
+                actual_filename = '36.pdf'
+            elif '_41' in filename_lower:
+                actual_filename = '41.pdf'
+            elif '_46' in filename_lower:
+                actual_filename = '46.pdf'
+            elif '_5' in filename_lower:
+                actual_filename = '5.pdf'
+            elif '_59' in filename_lower:
+                actual_filename = '59.pdf'
+            elif '_69' in filename_lower:
+                actual_filename = '69.pdf'
+            elif '_70' in filename_lower:
+                actual_filename = '1.pdf'  # Wisconsin Statutes
+            elif 'training' in filename_lower:
+                actual_filename = '082-TRAININGANDCAREERDEVELOPMENT.pdf'
             else:
                 actual_filename = filename
         file_path = pdfs_dir / actual_filename
@@ -754,11 +796,35 @@ def save_chat():
             # Pair up user questions with assistant answers
             for i, user_msg in enumerate(user_messages):
                 if i < len(assistant_messages):
+                    assistant_msg = assistant_messages[i]
+                    
+                    # Extract sources from the assistant message
+                    sources = assistant_msg.get('sources', [])
+                    metadata = assistant_msg.get('metadata', {})
+                    
+                    # Format context string from sources
+                    context_lines = []
+                    if sources:
+                        for j, source in enumerate(sources, 1):
+                            context_lines.append(f"Source {j} (Relevance: {source.get('score', 0.8):.2f})")
+                            context_lines.append(f"Document Type: {source.get('type', 'Unknown')}")
+                            context_lines.append(f"Title: {source.get('title', 'Unknown Document')}")
+                            context_lines.append(f"Jurisdiction: {source.get('jurisdiction', 'Unknown')}")
+                            context_lines.append(f"Status: {source.get('status', 'Unknown')}")
+                            context_lines.append(f"Section: {source.get('section', 'General')}")
+                            if source.get('content_preview'):
+                                context_lines.append(f"Content: {source.get('content_preview', '')}")
+                            if source.get('citations'):
+                                context_lines.append(f"Citations: {', '.join(source.get('citations', []))}")
+                            context_lines.append("")  # Empty line between sources
+                    
                     history.append({
                         'question': user_msg.get('content', ''),
-                        'answer': assistant_messages[i].get('content', ''),
+                        'answer': assistant_msg.get('content', ''),
                         'timestamp': datetime.now().isoformat(),
-                        'context': ''
+                        'context': '\n'.join(context_lines),
+                        'sources': sources,  # Store original sources for frontend
+                        'metadata': metadata  # Store metadata like confidence scores
                     })
         else:
             # Fallback to chatbot history

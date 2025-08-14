@@ -1,4 +1,4 @@
-import { ExternalLink, FileText, BookOpen, Shield, Gavel, MapPin, Calendar, Hash, Download } from "lucide-react";
+import { FileText, BookOpen, Shield, Gavel, MapPin, Calendar, Hash, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { apiService } from "@/lib/api";
@@ -205,29 +205,16 @@ export const SourceCard = ({
       )}
 
       {}
-      {(url && url !== '#') || (filename && isValidDownloadableFile(filename)) ? (
+      {filename && isValidDownloadableFile(filename) ? (
         <div className="flex items-center justify-between pt-2 border-t border-border/40">
           <div className="flex items-center gap-2">
-            {url && url !== '#' && (
-              <a
-                href={url}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-1 text-xs font-medium text-primary/80 transition-all hover:text-primary hover:gap-1.5"
-              >
-                View source
-                <ExternalLink className="h-3 w-3" />
-              </a>
-            )}
-            {filename && isValidDownloadableFile(filename) && (
-              <button
-                onClick={handleDownload}
-                className="inline-flex items-center gap-1 text-xs font-medium text-primary/80 transition-all hover:text-primary hover:gap-1.5"
-              >
-                Download
-                <Download className="h-3 w-3" />
-              </button>
-            )}
+            <button
+              onClick={handleDownload}
+              className="inline-flex items-center gap-1 text-xs font-medium text-primary/80 transition-all hover:text-primary hover:gap-1.5"
+            >
+              Download
+              <Download className="h-3 w-3" />
+            </button>
           </div>
         </div>
       ) : null}
