@@ -185,7 +185,7 @@ take-home-wisconsin-rag/
 
 ## 🧪 Testing
 
-Performance Metrics as deliverable -- already in `backend/`.
+**Performance Metrics as deliverable -- already in `backend/`.**
 
 ### Backend Tests
 ```bash
