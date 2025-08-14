@@ -1,0 +1,270 @@
+{
+  "retrieval_accuracy": {
+    "precision_scores": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "recall_estimates": [],
+    "f1_scores": [],
+    "relevance_thresholds": [
+      0.5,
+      0.6,
+      0.7,
+      0.8
+    ],
+    "average_precision": 0.0
+  },
+  "response_times": {
+    "query_times": [],
+    "retrieval_times": [
+      0.6647387981414795,
+      1.0576218366622925,
+      0.6202059030532837,
+      0.550690770149231,
+      0.8250299692153931,
+      0.6243552446365356
+    ],
+    "generation_times": [
+      1.5510571956634522,
+      2.467784285545349,
+      1.4471471071243287,
+      1.2849451303482056,
+      1.9250699281692505,
+      1.4568289041519167
+    ],
+    "total_times": [
+      2.2157959938049316,
+      3.5254061222076416,
+      2.0673530101776123,
+      1.8356359004974365,
+      2.7500998973846436,
+      2.081184148788452
+    ],
+    "average_total_time": 2.4125791788101196,
+    "median_total_time": 2.148490071296692,
+    "p95_total_time": 3.5254061222076416,
+    "average_retrieval_time": 0.7237737536430359,
+    "average_generation_time": 1.6888054251670839
+  },
+  "relevance_scores": {
+    "score_distributions": [
+      {
+        "query": "What does 18 U.S.C. 2703 say a",
+        "scores": [
+          0.5899511513333334,
+          0.5210317165333334,
+          0.5049356888000001,
+          0.48436764386666675,
+          0.48436764386666675
+        ],
+        "top_score": 0.5899511513333334,
+        "avg_score": 0.5169307688800001,
+        "relevance_factors": {
+          "semantic_score": 0.5348269221999999,
+          "keyword_score": 0.4,
+          "jurisdiction_score": 0.5,
+          "law_status_score": 0.7,
+          "document_type_score": 0.76
+        }
+      },
+      {
+        "query": "Fourth Amendment protections f",
+        "scores": [
+          0.6934629156,
+          0.47962404,
+          0.4542588424000001,
+          0.4542588424000001,
+          0.4356795764
+        ],
+        "top_score": 0.6934629156,
+        "avg_score": 0.50345684336,
+        "relevance_factors": {
+          "semantic_score": 0.5136421084,
+          "keyword_score": 0.3833333333333333,
+          "jurisdiction_score": 0.5,
+          "law_status_score": 0.7,
+          "document_type_score": 0.76
+        }
+      },
+      {
+        "query": "Wisconsin statutes on evidence",
+        "scores": [
+          0.6440085027999999,
+          0.6320582151999999,
+          0.6281376,
+          0.6106428859999999,
+          0.6020653724
+        ],
+        "top_score": 0.6440085027999999,
+        "avg_score": 0.62338251528,
+        "relevance_factors": {
+          "semantic_score": 0.5909562881999999,
+          "keyword_score": 0.7,
+          "jurisdiction_score": 0.5,
+          "law_status_score": 0.7,
+          "document_type_score": 0.64
+        }
+      },
+      {
+        "query": "Miranda rights requirements du",
+        "scores": [
+          0.38157866479999997,
+          0.32748401400000005,
+          0.31850682480000003,
+          0.3163022496,
+          0.29558217519999996
+        ],
+        "top_score": 0.38157866479999997,
+        "avg_score": 0.32789078568,
+        "relevance_factors": {
+          "semantic_score": 0.3047269642,
+          "keyword_score": 0.04,
+          "jurisdiction_score": 0.5,
+          "law_status_score": 0.82,
+          "document_type_score": 0.74
+        }
+      },
+      {
+        "query": "Use of force policies in law e",
+        "scores": [
+          0.6223005458857143,
+          0.4647044594285714,
+          0.4389297145714286,
+          0.42230577731428576,
+          0.4200355545714286
+        ],
+        "top_score": 0.6223005458857143,
+        "avg_score": 0.4736552103542857,
+        "relevance_factors": {
+          "semantic_score": 0.37485231160000004,
+          "keyword_score": 0.48571428571428565,
+          "jurisdiction_score": 0.5,
+          "law_status_score": 0.7,
+          "document_type_score": 0.6599999999999999
+        }
+      },
+      {
+        "query": "Search warrant requirements fo",
+        "scores": [
+          0.5155686568000001,
+          0.5155686568000001,
+          0.47986009120000006,
+          0.44927038680000003,
+          0.40140325080000006
+        ],
+        "top_score": 0.5155686568000001,
+        "avg_score": 0.4723342084800001,
+        "relevance_factors": {
+          "semantic_score": 0.46833552120000005,
+          "keyword_score": 0.3333333333333333,
+          "jurisdiction_score": 0.5,
+          "law_status_score": 0.76,
+          "document_type_score": 0.6799999999999999
+        }
+      }
+    ],
+    "confidence_calibration": [],
+    "ranking_quality": [],
+    "overall_score_average": 0.48627505533904763,
+    "overall_score_median": 0.4797420656,
+    "top_score_average": 0.5744784062031746,
+    "score_variance": 0.011193852356555515
+  },
+  "query_set_results": {
+    "individual_results": [
+      {
+        "query": "What does 18 U.S.C. 2703 say about digital evidence?",
+        "type": "specific_statute",
+        "jurisdiction": "federal",
+        "expected_confidence": 0.8,
+        "expected_sources": 3,
+        "actual_confidence": 0.5840516398200002,
+        "actual_sources": 0,
+        "response_time": 1.9368901252746582,
+        "confidence_met": false,
+        "sources_met": false,
+        "success": true
+      },
+      {
+        "query": "Fourth Amendment protections for digital privacy",
+        "type": "constitutional_law",
+        "jurisdiction": "federal",
+        "expected_confidence": 0.7,
+        "expected_sources": 4,
+        "actual_confidence": 0.686528286444,
+        "actual_sources": 0,
+        "response_time": 2.3575170040130615,
+        "confidence_met": false,
+        "sources_met": false,
+        "success": true
+      },
+      {
+        "query": "Wisconsin statutes on evidence collection procedures",
+        "type": "state_specific",
+        "jurisdiction": "wisconsin",
+        "expected_confidence": 0.75,
+        "expected_sources": 3,
+        "actual_confidence": 0.637568417772,
+        "actual_sources": 0,
+        "response_time": 2.4506890773773193,
+        "confidence_met": false,
+        "sources_met": false,
+        "success": true
+      },
+      {
+        "query": "Miranda rights requirements during arrest",
+        "type": "procedural_law",
+        "jurisdiction": "federal",
+        "expected_confidence": 0.8,
+        "expected_sources": 4,
+        "actual_confidence": 0.377762878152,
+        "actual_sources": 0,
+        "response_time": 3.103253126144409,
+        "confidence_met": false,
+        "sources_met": false,
+        "success": true
+      },
+      {
+        "query": "Use of force policies in law enforcement",
+        "type": "policy_procedure",
+        "jurisdiction": "general",
+        "expected_confidence": 0.7,
+        "expected_sources": 3,
+        "actual_confidence": 0.6160775404268571,
+        "actual_sources": 0,
+        "response_time": 3.1003408432006836,
+        "confidence_met": false,
+        "sources_met": false,
+        "success": true
+      },
+      {
+        "query": "Search warrant requirements for electronic devices",
+        "type": "warrant_law",
+        "jurisdiction": "federal",
+        "expected_confidence": 0.75,
+        "expected_sources": 4,
+        "actual_confidence": 0.5104129702320002,
+        "actual_sources": 0,
+        "response_time": 2.9176318645477295,
+        "confidence_met": false,
+        "sources_met": false,
+        "success": true
+      }
+    ],
+    "aggregate_metrics": {
+      "total_queries": 6,
+      "successful_queries": 6,
+      "success_rate": 1.0,
+      "confidence_success_rate": 0.0,
+      "sources_success_rate": 0.0,
+      "average_confidence": 0.5687336221411429,
+      "average_sources": 0,
+      "average_response_time": 2.6443870067596436
+    }
+  },
+  "timestamp": "2025-08-13T19:04:03.177692"
+}
