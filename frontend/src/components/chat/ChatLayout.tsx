@@ -11,7 +11,7 @@ import { QuickQueries } from "./QuickQueries";
 import { ExportModal } from "./ExportModal";
 import { SaveModal } from "./SaveModal";
 import { ConversationHistory } from "./ConversationHistory";
-import { Plus, Upload, Save, Download, History, Menu, FileText } from "lucide-react";
+import { Plus, Upload, Save, Download, History, Menu, FileText, Link, ChevronDown, ChevronUp } from "lucide-react";
 import { apiService, ChatMessage as ApiChatMessage, SourceDocument } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 
@@ -117,6 +117,11 @@ export const ChatLayout = () => {
   const [currentChatId, setCurrentChatId] = useState<string | undefined>();
   const [autoSaveEnabled, setAutoSaveEnabled] = useState(true);
   const [abortController, setAbortController] = useState<AbortController | null>(null);
+  const [showCrossReferencePanel, setShowCrossReferencePanel] = useState(false);
+  const [crossReferenceResults, setCrossReferenceResults] = useState<(SourceDocument & { similarityScore: number })[]>([]);
+  const [selectedDocument, setSelectedDocument] = useState<SourceDocument | null>(null);
+  const [contextSourcesExpanded, setContextSourcesExpanded] = useState(true);
+  const [crossReferencesExpanded, setCrossReferencesExpanded] = useState(true);
 
   useEffect(() => {
     const checkConnection = async () => {
@@ -280,7 +285,7 @@ export const ChatLayout = () => {
               section: doc.section || 'General',
               citations: doc.citations || [],
               content_preview: doc.content_preview || 'No preview available',
-              url: `http://localhost:5000/api/documents/download/${doc.original_file_name || doc.file_name || `${doc.source_number || index + 1}.pdf`}`,
+              url: `http://localhost:5001/api/documents/download/${doc.original_file_name || doc.file_name || `${doc.source_number || index + 1}.pdf`}`,
               source_number: doc.source_number || index + 1,
               filename: doc.original_file_name || doc.file_name,
             }));
@@ -345,11 +350,99 @@ export const ChatLayout = () => {
     setCurrentSources([]);
     setCurrentSessionName(undefined);
     setCurrentChatId(undefined);
-    
+    setShowCrossReferencePanel(false);
+    setSelectedDocument(undefined);
+    setCrossReferenceResults([]);
+    setContextSourcesExpanded(true);
+    setCrossReferencesExpanded(true);
   };
 
   const handleQuickQuery = (question: string) => {
     onSend(question);
+  };
+
+  const handleCrossReference = async (document: SourceDocument) => {
+    setSelectedDocument(document);
+    setShowCrossReferencePanel(true);
+    
+    try {
+      // Find similar documents from current sources
+      const similarDocuments = findSimilarDocuments(document, currentSources);
+      setCrossReferenceResults(similarDocuments);
+    } catch (error) {
+      console.error('Error finding cross-references:', error);
+      setCrossReferenceResults([]);
+    }
+  };
+
+  const findSimilarDocuments = (targetDoc: SourceDocument, allSources: SourceDocument[]): (SourceDocument & { similarityScore: number })[] => {
+    // Filter out the target document itself
+    const otherDocs = allSources.filter(doc => doc.id !== targetDoc.id);
+    
+    if (otherDocs.length === 0) return [];
+    
+    // Enhanced similarity scoring based on common factors
+    const scoredDocs = otherDocs.map(doc => {
+      let score = 0;
+      
+      // Same document type gets points
+      if (doc.type === targetDoc.type) score += 3;
+      
+      // Same jurisdiction gets points
+      if (doc.jurisdiction === targetDoc.jurisdiction) score += 2;
+      
+      // Same status gets points
+      if (doc.status === targetDoc.status) score += 1;
+      
+      // Similar section names get points
+      if (doc.section && targetDoc.section && 
+          doc.section.toLowerCase().includes(targetDoc.section.toLowerCase()) ||
+          targetDoc.section.toLowerCase().includes(doc.section.toLowerCase())) {
+        score += 4;
+      }
+      
+      // Common citations get points
+      const commonCitations = doc.citations?.filter(citation => 
+        targetDoc.citations?.includes(citation)
+      ) || [];
+      score += commonCitations.length * 3;
+      
+      // Similar content preview gets points
+      if (doc.content_preview && targetDoc.content_preview) {
+        const targetWords = targetDoc.content_preview.toLowerCase().split(' ');
+        const docWords = doc.content_preview.toLowerCase().split(' ');
+        const commonWords = targetWords.filter(word => 
+          word.length > 3 && docWords.includes(word)
+        );
+        score += commonWords.length * 0.5;
+      }
+      
+      // Similar filenames get points
+      if (doc.filename && targetDoc.filename) {
+        const targetName = targetDoc.filename.toLowerCase();
+        const docName = doc.filename.toLowerCase();
+        if (targetName.includes(docName.substring(0, 8)) || docName.includes(targetName.substring(0, 8))) {
+          score += 2;
+        }
+      }
+      
+      return { ...doc, similarityScore: score };
+    });
+    
+    // Sort by similarity score and return all documents with score > 0, or top 10 if all have scores
+    const sortedDocs = scoredDocs.sort((a, b) => b.similarityScore - a.similarityScore);
+    
+    // Return documents with similarity score > 0, or top 10, whichever is smaller
+    const relevantDocs = sortedDocs.filter(doc => doc.similarityScore > 0);
+    const maxDocs = Math.min(relevantDocs.length, 10);
+    
+    return relevantDocs.slice(0, maxDocs);
+  };
+
+  const getSimilarityScoreColor = (score: number) => {
+    if (score >= 8) return 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900 dark:text-green-200 dark:border-green-800';
+    if (score >= 5) return 'bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900 dark:text-yellow-200 dark:border-yellow-800';
+    return 'bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700';
   };
 
   const handleSaveChat = () => {
@@ -426,197 +519,98 @@ export const ChatLayout = () => {
   const handleLoadChat = (chatData: any) => {
     console.log('Loading chat data:', chatData);
     
-    const loadedMessages: Message[] = [
-      {
-        role: "assistant",
-        content: "Hi! I'm your Wisconsin Statutes RAG assistant. Ask me questions about legal documents and I'll cite the most relevant sources from your knowledge base.",
-      }
-    ];
-
-    if (chatData.history && Array.isArray(chatData.history)) {
-      chatData.history.forEach((exchange: any) => {
-        loadedMessages.push({
-          role: "user",
-          content: exchange.question || "Unknown question",
-        });
-
-        const assistantMessage: Message = {
+    try {
+      const loadedMessages: Message[] = [
+        {
           role: "assistant",
-          content: formatTextWithBullets(exchange.answer || "No answer available"),
-        };
-
-        // First, try to use the stored sources array (new format)
-        if (exchange.sources && Array.isArray(exchange.sources)) {
-          assistantMessage.sources = exchange.sources;
+          content: "Hi! I'm your Wisconsin Statutes RAG assistant. Ask me questions about legal documents and I'll cite the most relevant sources from your knowledge base.",
         }
-        // Fallback to parsing context string (legacy format)
-        else if (exchange.context) {
-          const contextLines = exchange.context.split('\n');
-          const sources: any[] = [];
-          let currentSource: any = {};
-          
-          contextLines.forEach((line: string) => {
-            if (line.startsWith('Source ')) {
-              if (currentSource.id) {
-                sources.push(currentSource);
-              }
-              
-              const sourceMatch = line.match(/Source (\d+) \(Relevance: ([\d.]+)\)/);
-              const sourceNumber = sourceMatch ? parseInt(sourceMatch[1]) : 1;
-              const relevanceScore = sourceMatch ? parseFloat(sourceMatch[2]) : 0.8;
-              
-              currentSource = {
-                id: sourceNumber.toString(),
-                title: 'Unknown Document',
-                content_preview: '',
-                score: relevanceScore,
-                type: 'document',
-                jurisdiction: 'unknown',
-                status: 'current',
-                section: 'General',
-                citations: [],
-                url: '#',
-                source_number: sourceNumber
-              };
-            } else if (line.includes('Document Type:')) {
-              currentSource.type = line.split(':')[1]?.trim() || 'document';
-            } else if (line.includes('Jurisdiction:')) {
-              currentSource.jurisdiction = line.split(':')[1]?.trim() || 'unknown';
-            } else if (line.includes('Content:')) {
-              const content = line.split('Content:')[1]?.trim() || '';
-              currentSource.content_preview = content.substring(0, 150) + (content.length > 150 ? '...' : '');
-              
-              if (content) {
-                const lines = content.split('\n');
-                for (const line of lines) {
-                  const trimmedLine = line.trim();
-                  if (trimmedLine && trimmedLine.length > 0 && trimmedLine.length < 100) {
-                    if (trimmedLine.match(/^[A-Z][A-Z\s\d\.]+$/) ||
-                        trimmedLine.match(/^[A-Z][a-z\s]+$/) ||
-                        trimmedLine.includes('CHAPTER') ||
-                        trimmedLine.includes('SECTION') ||
-                        trimmedLine.includes('STATUTE') ||
-                        trimmedLine.includes('SOVEREIGNTY') ||
-                        trimmedLine.includes('JURISDICTION') ||
-                        trimmedLine.includes('WISCONSIN STATUTES')) {
-                      currentSource.title = trimmedLine;
-                      break;
-                    }
-                  }
-                }
-                
-                if (currentSource.title === `Source ${currentSource.source_number}`) {
-                  for (const line of lines) {
-                    const trimmedLine = line.trim();
-                    if (trimmedLine && trimmedLine.length > 5 && trimmedLine.length < 80) {
-                      if (!trimmedLine.match(/^\d+$/) && !trimmedLine.match(/^[A-Z\s]+$/)) {
-                        currentSource.title = trimmedLine;
-                        break;
-                      }
-                    }
-                  }
-                }
-              }
-            } else if (line.includes('Citations:')) {
-              const citations = line.split('Citations:')[1]?.trim() || '';
-              currentSource.citations = citations.split(',').map(c => c.trim()).filter(c => c);
-            }
+      ];
+
+      if (chatData.history && Array.isArray(chatData.history)) {
+        chatData.history.forEach((exchange: any) => {
+          // Add user message
+          loadedMessages.push({
+            role: "user",
+            content: exchange.question || "Unknown question",
           });
-          
-          if (currentSource.id) {
-            sources.push(currentSource);
-          }
-          
-          assistantMessage.sources = sources;
-        }
 
-        // Add metadata if available (includes confidence score and safety warnings)
-        if (exchange.metadata || exchange.confidence_score !== undefined || exchange.safety_warnings) {
-          assistantMessage.metadata = {
-            confidence_score: exchange.metadata?.confidence_score || exchange.confidence_score,
-            safety_warnings: exchange.metadata?.safety_warnings || exchange.safety_warnings,
-            ...exchange.metadata  // Include any other metadata fields
+          // Add assistant message
+          const assistantMessage: Message = {
+            role: "assistant",
+            content: formatTextWithBullets(exchange.answer || "No answer available"),
           };
-        }
 
-        loadedMessages.push(assistantMessage);
+          // Handle sources - try new format first, then legacy
+          if (exchange.sources && Array.isArray(exchange.sources)) {
+            assistantMessage.sources = exchange.sources;
+          } else if (exchange.metadata?.source_documents && Array.isArray(exchange.metadata.source_documents)) {
+            assistantMessage.sources = exchange.metadata.source_documents;
+          }
+
+          // Add metadata if available
+          if (exchange.metadata) {
+            assistantMessage.metadata = {
+              confidence_score: exchange.metadata.confidence_score,
+              safety_warnings: exchange.metadata.safety_warnings,
+            };
+          }
+
+          loadedMessages.push(assistantMessage);
+        });
+      }
+
+      console.log('Loaded messages:', loadedMessages);
+      setMessages(loadedMessages);
+      setCurrentSessionName(chatData.chat_name || chatData.session_name);
+      
+      // Set current sources from the latest assistant message
+      const lastAssistantMessage = loadedMessages.filter(m => m.role === 'assistant').pop();
+      if (lastAssistantMessage && lastAssistantMessage.sources && lastAssistantMessage.sources.length > 0) {
+        setCurrentSources(lastAssistantMessage.sources);
+        console.log('Loaded sources for context panel:', lastAssistantMessage.sources.length, 'sources');
+      } else {
+        setCurrentSources([]);
+      }
+      
+      setShowHistoryPanel(false);
+      
+      toast({
+        title: "Chat Loaded",
+        description: `Successfully loaded "${chatData.chat_name || chatData.session_name}" with ${chatData.history?.length || 0} exchanges.`,
+      });
+      
+    } catch (error) {
+      console.error('Error loading chat:', error);
+      toast({
+        title: "Load Failed",
+        description: "Failed to load chat session. Please try again.",
+        variant: "destructive",
       });
     }
+  };
 
-    console.log('Loaded messages:', loadedMessages);
-    setMessages(loadedMessages);
-    setCurrentSessionName(chatData.chat_name || chatData.session_name);
+  const isValidDownloadableFile = (filename: string | undefined): boolean => {
+    if (!filename) return false;
     
-    // CRITICAL FIX: Extract sources from the latest assistant message and set to currentSources
-    // This ensures the CONTEXT SOURCES panel displays the sources from the loaded chat
-    const lastAssistantMessage = loadedMessages.filter(m => m.role === 'assistant').pop();
-    if (lastAssistantMessage && lastAssistantMessage.sources && lastAssistantMessage.sources.length > 0) {
-      setCurrentSources(lastAssistantMessage.sources);
-      console.log('Loaded sources for context panel:', lastAssistantMessage.sources.length, 'sources');
-    } else {
-      setCurrentSources([]);
-    }
+    const hasValidExtension = /\.(pdf|doc|docx|txt|html|md)$/i.test(filename);
     
-    setAutoSaveEnabled(true);
+    const invalidPatterns = [
+      'CHAPTER',
+      'SECTION', 
+      'STATUTE',
+      'WISCONSIN STATUTES',
+      'Unknown Document',
+      'Source ',
+      'Document Type',
+      'Jurisdiction'
+    ];
     
-    if (chatData.history && chatData.history.length > 0) {
-      const lastExchange = chatData.history[chatData.history.length - 1];
-      if (lastExchange.context) {
-        const contextLines = lastExchange.context.split('\n');
-        const sources: any[] = [];
-        let currentSource: any = {};
-        
-        contextLines.forEach((line: string) => {
-          if (line.startsWith('Source ')) {
-            if (currentSource.id) {
-              sources.push(currentSource);
-            }
-            
-            const sourceMatch = line.match(/Source (\d+) \(Relevance: ([\d.]+)\)/);
-            const sourceNumber = sourceMatch ? parseInt(sourceMatch[1]) : 1;
-            const relevanceScore = sourceMatch ? parseFloat(sourceMatch[2]) : 0.8;
-            
-            currentSource = {
-              id: sourceNumber.toString(),
-              title: `Source ${sourceNumber}`,
-              content_preview: '',
-              score: relevanceScore,
-              type: 'document',
-              jurisdiction: 'unknown',
-              status: 'current',
-              section: 'General',
-              citations: [],
-              url: '#',
-              source_number: sourceNumber
-            };
-          } else if (line.includes('Document Type:')) {
-            currentSource.type = line.split(':')[1]?.trim() || 'document';
-          } else if (line.includes('Jurisdiction:')) {
-            currentSource.jurisdiction = line.split(':')[1]?.trim() || 'unknown';
-          } else if (line.includes('Content:')) {
-            const content = line.split('Content:')[1]?.trim() || '';
-            currentSource.content_preview = content.substring(0, 150) + (content.length > 150 ? '...' : '');
-          } else if (line.includes('Citations:')) {
-            const citations = line.split('Citations:')[1]?.trim() || '';
-            currentSource.citations = citations.split(',').map(c => c.trim()).filter(c => c);
-          }
-        });
-        
-        if (currentSource.id) {
-          sources.push(currentSource);
-        }
-        
-        // Legacy context parsing - now handled by structured sources above
-        // setCurrentSources(sources); // Commented out - using structured sources now
-      }
-    }
+    const hasInvalidPattern = invalidPatterns.some(pattern => 
+      filename.toUpperCase().includes(pattern.toUpperCase())
+    );
     
-    setShowHistoryPanel(false);
-    
-    toast({
-      title: "Chat Loaded",
-              description: `Successfully loaded "${chatData.chat_name || chatData.session_name}" with ${chatData.history?.length || 0} exchanges and ${chatData.history && chatData.history.length > 0 ? 'restored sources' : 'no sources'}. Auto-save enabled.`,
-    });
+    return hasValidExtension && !hasInvalidPattern;
   };
 
   return (
@@ -646,40 +640,48 @@ export const ChatLayout = () => {
               <Button 
                 variant="outline" 
                 size="sm"
-                className="hover-scale" 
+                className="hover-scale px-2" 
                 onClick={() => setShowHistoryPanel(!showHistoryPanel)}
                 disabled={!isConnected}
+                title="View chat history and saved conversations"
               >
-                <History className="mr-2 h-4 w-4" /> History
+                <History className="mr-1 h-4 w-4" /> Hist
               </Button>
               <Button 
                 variant="outline" 
                 size="sm"
-                className="hover-scale" 
+                className="hover-scale px-2" 
                 onClick={() => setShowUploadModal(true)}
                 disabled={!isConnected}
+                title="Upload legal documents to the knowledge base"
               >
-                <Upload className="mr-2 h-4 w-4" /> Upload
+                <Upload className="mr-1 h-4 w-4" /> Up
                 {documentCount > 0 && (
-                  <span className="ml-2 px-2 py-0.5 text-xs bg-primary text-primary-foreground rounded-full">
+                  <span className="ml-1 px-1 py-0.5 text-xs bg-primary text-primary-foreground rounded-full">
                     {documentCount}
                   </span>
                 )}
               </Button>
-            </div>
-            
-            {}
-            <div className="flex items-center gap-1">
               <Button 
                 variant="outline" 
                 size="sm"
-                className={`hover-scale ${autoSaveEnabled ? 'bg-green-600' : ''}`}
+                className={`hover-scale px-2 ${showCrossReferencePanel ? 'bg-blue-600 text-white' : ''}`}
+                onClick={() => setShowCrossReferencePanel(!showCrossReferencePanel)}
+                disabled={!isConnected || currentSources.length === 0}
+                title="Find cross-references and related documents"
+              >
+                <Link className="mr-1 h-4 w-4" /> Ref
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                className={`hover-scale px-2 ${autoSaveEnabled ? 'bg-green-600' : ''}`}
                 onClick={() => setAutoSaveEnabled(!autoSaveEnabled)}
                 disabled={!isConnected}
-                title={autoSaveEnabled ? "Auto-save enabled" : "Auto-save disabled"}
+                title={autoSaveEnabled ? "Auto-save enabled - conversations are saved automatically" : "Auto-save disabled - conversations must be saved manually"}
               >
                 <Save className="mr-1 h-4 w-4" /> 
-                {autoSaveEnabled ? "Auto" : "Manual"}
+                {autoSaveEnabled ? "Auto" : "Man"}
               </Button>
               {!autoSaveEnabled && messages.filter(m => m.role === 'user').length > 0 && (
                 <Button 
@@ -688,7 +690,7 @@ export const ChatLayout = () => {
                   className="hover-scale px-2" 
                   onClick={handleSaveChat}
                   disabled={!isConnected}
-                  title="Save current chat"
+                  title="Save current chat conversation"
                 >
                   <Save className="h-4 w-4" />
                 </Button>
@@ -696,13 +698,20 @@ export const ChatLayout = () => {
               <Button 
                 variant="outline" 
                 size="sm"
-                className="hover-scale" 
+                className="hover-scale px-2" 
                 onClick={() => setShowExportModal(true)}
                 disabled={!isConnected || messages.length <= 1}
+                title="Export chat conversation as text file"
               >
-                <Download className="mr-1 h-4 w-4" /> Export
+                <Download className="mr-1 h-4 w-4" /> Exp
               </Button>
-              <Button variant="secondary" size="sm" className="hover-scale" onClick={clearChat}>
+              <Button 
+                variant="secondary" 
+                size="sm" 
+                className="hover-scale px-2" 
+                onClick={clearChat}
+                title="Start a new chat conversation"
+              >
                 <Plus className="mr-1 h-4 w-4" /> New
               </Button>
             </div>
@@ -711,8 +720,8 @@ export const ChatLayout = () => {
       </header>
 
       <div className={`grid gap-4 md:gap-6 lg:gap-8 flex-1 ${
-        showHistoryPanel 
-          ? 'grid-cols-1 lg:grid-cols-[300px_1fr_300px] xl:grid-cols-[320px_1fr_320px]'
+        showHistoryPanel
+          ? 'grid-cols-1 lg:grid-cols-[300px_1fr] xl:grid-cols-[320px_1fr]'
           : 'grid-cols-1 md:grid-cols-[1fr_250px] lg:grid-cols-[1fr_300px] xl:grid-cols-[1fr_320px]'
       }`}>
         {}
@@ -766,36 +775,193 @@ export const ChatLayout = () => {
 
           {}
           <div className="rounded-xl border bg-card p-4 md:p-6">
-            <div className="mb-3 flex items-center justify-between">
+            <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <div className="h-2 w-2 rounded-full bg-primary"></div>
                 <h2 className="text-sm font-semibold">Context Sources</h2>
               </div>
-              <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full">
-                {currentSources.length} sources
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full">
+                  {currentSources.length} sources
+                </span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setContextSourcesExpanded(!contextSourcesExpanded)}
+                  className="h-6 w-6 p-0"
+                >
+                  {contextSourcesExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                </Button>
+              </div>
             </div>
             
-            {currentSources.length > 0 ? (
-              <div className="space-y-2">
-                {currentSources.map((s, i) => (
-                  <SourceCard key={i} {...s} />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-6 text-muted-foreground">
-                <FileText className="h-6 w-6 mx-auto mb-2 opacity-50" />
-                <p className="text-xs">No sources yet</p>
-                <p className="text-xs">Ask a question to see relevant documents</p>
-              </div>
+            {contextSourcesExpanded && (
+              <>
+                {currentSources.length > 0 ? (
+                  <div className="space-y-2">
+                    {currentSources.map((s, i) => (
+                      <SourceCard 
+                        key={i} 
+                        {...s} 
+                        onCrossReference={() => handleCrossReference(s)}
+                        showCrossReferenceButton={true}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-6 text-muted-foreground">
+                    <FileText className="h-6 w-6 mx-auto mb-2 opacity-50" />
+                    <p className="text-xs">No sources yet</p>
+                    <p className="text-xs">Ask a question to see relevant documents</p>
+                  </div>
+                )}
+                
+                <Separator className="my-3" />
+                <div className="text-xs text-muted-foreground leading-relaxed">
+                  Documents are semantically indexed and ranked by relevance to your query. 
+                  Each source shows the most relevant sections from your knowledge base.
+                </div>
+              </>
             )}
-            
-            <Separator className="my-3" />
-            <div className="text-xs text-muted-foreground leading-relaxed">
-              Documents are semantically indexed and ranked by relevance to your query. 
-              Each source shows the most relevant sections from your knowledge base.
-            </div>
           </div>
+
+          {}
+          {showCrossReferencePanel && selectedDocument && (
+            <div className="rounded-xl border bg-card p-4 md:p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <div className="h-2 w-2 rounded-full bg-blue-500"></div>
+                  <h2 className="text-sm font-semibold">Cross-References</h2>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full">
+                    {crossReferenceResults.length} similar
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setCrossReferencesExpanded(!crossReferencesExpanded)}
+                    className="h-6 w-6 p-0"
+                  >
+                    {crossReferencesExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowCrossReferencePanel(false)}
+                    className="h-6 w-6 p-0"
+                    title="Close cross-references"
+                  >
+                    <Plus className="h-3 w-3 rotate-45" />
+                  </Button>
+                </div>
+              </div>
+              
+              {crossReferencesExpanded && (
+                <>
+                  <div className="mb-4 p-3 bg-muted/50 rounded-lg border">
+                    <p className="text-xs text-muted-foreground mb-2 font-medium">Similar to:</p>
+                    <div className="text-xs">
+                      <strong className="text-foreground">{selectedDocument.title}</strong>
+                      <br />
+                      <span className="text-muted-foreground">{selectedDocument.section}</span>
+                    </div>
+                  </div>
+                  
+                  {crossReferenceResults.length > 0 ? (
+                    <div className="space-y-3 max-h-96 overflow-y-auto">
+                      {crossReferenceResults.map((doc, i) => (
+                        <div key={i} className="group relative rounded-lg border border-border/50 bg-card/50 hover:bg-card/80 hover:border-border transition-all duration-200 p-4">
+                          {/* Header with title and score */}
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-semibold text-sm text-foreground leading-tight line-clamp-2 group-hover:text-primary transition-colors">
+                                {doc.title}
+                              </h4>
+                            </div>
+                            <div className="flex items-center gap-2 ml-3 flex-shrink-0">
+                              <div className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${getSimilarityScoreColor(doc.similarityScore)}`}>
+                                {doc.similarityScore} pts
+                              </div>
+                              <span className="text-xs text-muted-foreground/60 bg-muted/50 px-2 py-1 rounded-md font-mono">
+                                #{i + 1}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Content preview */}
+                          {doc.content_preview && (
+                            <p className="text-xs text-muted-foreground/80 leading-relaxed mb-3 line-clamp-2">
+                              {doc.content_preview}
+                            </p>
+                          )}
+
+                          {/* Metadata row */}
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300 px-2 py-1 rounded-md font-medium">
+                                {doc.type?.replace(/_/g, ' ')}
+                              </span>
+                              <span className="text-xs bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 px-2 py-1 rounded-md font-medium">
+                                {doc.jurisdiction}
+                              </span>
+                              {doc.citations && doc.citations.length > 0 && (
+                                <span className="text-xs bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-300 px-2 py-1 rounded-md font-medium">
+                                  {doc.citations.length} citations
+                                </span>
+                              )}
+                            </div>
+                            
+                            {/* Download button */}
+                            {doc.filename && isValidDownloadableFile(doc.filename) && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={async () => {
+                                  try {
+                                    if (doc.filename && isValidDownloadableFile(doc.filename)) {
+                                      await apiService.downloadDocument(doc.filename);
+                                      toast({
+                                        title: "Download Started",
+                                        description: `Downloading ${doc.filename}`,
+                                      });
+                                    } else {
+                                      toast({
+                                        title: "Download Error",
+                                        description: "File not downloadable or invalid filename.",
+                                        variant: "destructive",
+                                      });
+                                    }
+                                  } catch (error) {
+                                    console.error('Cross-reference download error:', error);
+                                    toast({
+                                      title: "Download Failed",
+                                      description: error instanceof Error ? error.message : "Failed to download document",
+                                      variant: "destructive",
+                                    });
+                                  }
+                                }}
+                                className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-primary/10"
+                                title="Download document"
+                              >
+                                <Download className="h-3.5 w-3.5" />
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <Link className="h-8 w-8 mx-auto mb-3 opacity-50" />
+                      <p className="text-sm font-medium">No similar documents found</p>
+                      <p className="text-xs">Try selecting a different document</p>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          )}
         </aside>
       </div>
 

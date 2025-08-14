@@ -395,7 +395,7 @@ class CrossReferenceSystem:
             
             similarity = self.calculate_similarity_score(query_entities, result_entities)
             
-            if similarity > 0.2:
+            if similarity > 0.05:
                 suggestion = {
                     'document_id': result_id,
                     'file_name': result.get('metadata', {}).get('file_name', 'Unknown'),

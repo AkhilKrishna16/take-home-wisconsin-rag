@@ -1,0 +1,201 @@
+{
+  "session_name": "Some Miranda Rights",
+  "chat_name": "Some Miranda Rights",
+  "created_at": "2025-08-13T23:04:06.338299",
+  "history": [
+    {
+      "question": "what are some miranda rights",
+      "answer": "Miranda Rights, derived from the U.S. Supreme Court case Mirand",
+      "timestamp": "2025-08-13T23:04:06.338250",
+      "context": "",
+      "sources": [],
+      "metadata": {}
+    },
+    {
+      "question": "just bullet points, what are some miranda rights?",
+      "answer": "Miranda Rights, as established by the United States Supreme Court case Miranda v. Arizona, include the following rights that must be read to a suspect upon arrest:\n\n1. The right to remain silent.\n2. Anything the suspect says can and will be used against them in a court of law.\n3. The right to an attorney.\n4. If the suspect cannot afford an attorney, one will be appointed for them.\n\nThese rights are intended to protect the suspect's Fifth Amendment right against self-incrimination.",
+      "timestamp": "2025-08-13T23:04:06.338280",
+      "context": "Source 1 (Relevance: 0.68)\nDocument Type: training_module\nTitle: e3510370-cb54-451a-a9d0-7fde5ceb78ee_Miranda_Rights.pdf\nJurisdiction: federal\nStatus: current\nSection: Unknown\nContent: Miranda Rights\nAnyone who has watched a television show about law enforcement has a heard a police officer\nread the suspect his or her Miranda Rights. After placing the suspect under arrest, the offic...\nCitations: Miranda v. Arizona\n\nSource 2 (Relevance: 0.34)\nDocument Type: training_module\nTitle: e3510370-cb54-451a-a9d0-7fde5ceb78ee_Miranda_Rights.pdf\nJurisdiction: unknown\nStatus: current\nSection: Unknown\nContent: It means what it says.\n\nconstitutionally protected right, whether or not you can afford an attorney.  It means what it says.\nYou may ask for an attorney, and keep asking for an attorney \u2013 meanwhile re...\n\nSource 3 (Relevance: 0.34)\nDocument Type: training_module\nTitle: ada74109-23dc-4317-94a6-6819510d4e4a_46.pdf\nJurisdiction: unknown\nStatus: current\nSection: Unknown\nContent: searcher, the information will not be released to a person not con-\nnected with the study under consideration, and the final product\nof the research will not reveal information that may serve to iden-...\n\nSource 4 (Relevance: 0.34)\nDocument Type: training_module\nTitle: 61617043-8138-4879-b321-6f16e3c18e51_36.pdf\nJurisdiction: unknown\nStatus: current\nSection: Unknown\nContent: The hearing shall be held not later than 20 days af-\n\nof the hearing.  The hearing shall be held not later than 20 days af-\nter the request for hearing except that this time limit may be ex-\ntended by...\n\nSource 5 (Relevance: 0.33)\nDocument Type: training_module\nTitle: e3510370-cb54-451a-a9d0-7fde5ceb78ee_Miranda_Rights.pdf\nJurisdiction: state\nStatus: current\nSection: Unknown\nContent: The way to ensure protection of this right is to state:\n\nexercise your right, you must remain silent. The way to ensure protection of this right is to state:\n\u201cI am only willing to speak with you if I ...\n",
+      "sources": [
+        {
+          "citations": [
+            "Miranda v. Arizona"
+          ],
+          "content_preview": "Miranda Rights\nAnyone who has watched a television show about law enforcement has a heard a police officer\nread the suspect his or her Miranda Rights. After placing the suspect under arrest, the offic...",
+          "filename": "e3510370-cb54-451a-a9d0-7fde5ceb78ee_Miranda_Rights.pdf",
+          "id": "1",
+          "jurisdiction": "federal",
+          "score": 0.682526946,
+          "section": "Unknown",
+          "source_number": 1,
+          "status": "current",
+          "title": "e3510370-cb54-451a-a9d0-7fde5ceb78ee_Miranda_Rights.pdf",
+          "type": "training_module",
+          "url": "http://localhost:5000/api/documents/download/e3510370-cb54-451a-a9d0-7fde5ceb78ee_Miranda_Rights.pdf"
+        },
+        {
+          "citations": [],
+          "content_preview": "It means what it says.\n\nconstitutionally protected right, whether or not you can afford an attorney.  It means what it says.\nYou may ask for an attorney, and keep asking for an attorney \u2013 meanwhile re...",
+          "filename": "e3510370-cb54-451a-a9d0-7fde5ceb78ee_Miranda_Rights.pdf",
+          "id": "2",
+          "jurisdiction": "unknown",
+          "score": 0.34415568120000006,
+          "section": "Unknown",
+          "source_number": 2,
+          "status": "current",
+          "title": "e3510370-cb54-451a-a9d0-7fde5ceb78ee_Miranda_Rights.pdf",
+          "type": "training_module",
+          "url": "http://localhost:5000/api/documents/download/e3510370-cb54-451a-a9d0-7fde5ceb78ee_Miranda_Rights.pdf"
+        },
+        {
+          "citations": [],
+          "content_preview": "searcher, the information will not be released to a person not con-\nnected with the study under consideration, and the final product\nof the research will not reveal information that may serve to iden-...",
+          "filename": "ada74109-23dc-4317-94a6-6819510d4e4a_46.pdf",
+          "id": "3",
+          "jurisdiction": "unknown",
+          "score": 0.3390499712,
+          "section": "Unknown",
+          "source_number": 3,
+          "status": "current",
+          "title": "ada74109-23dc-4317-94a6-6819510d4e4a_46.pdf",
+          "type": "training_module",
+          "url": "http://localhost:5000/api/documents/download/ada74109-23dc-4317-94a6-6819510d4e4a_46.pdf"
+        },
+        {
+          "citations": [],
+          "content_preview": "The hearing shall be held not later than 20 days af-\n\nof the hearing.  The hearing shall be held not later than 20 days af-\nter the request for hearing except that this time limit may be ex-\ntended by...",
+          "filename": "61617043-8138-4879-b321-6f16e3c18e51_36.pdf",
+          "id": "4",
+          "jurisdiction": "unknown",
+          "score": 0.33869537120000004,
+          "section": "Unknown",
+          "source_number": 4,
+          "status": "current",
+          "title": "61617043-8138-4879-b321-6f16e3c18e51_36.pdf",
+          "type": "training_module",
+          "url": "http://localhost:5000/api/documents/download/61617043-8138-4879-b321-6f16e3c18e51_36.pdf"
+        },
+        {
+          "citations": [],
+          "content_preview": "The way to ensure protection of this right is to state:\n\nexercise your right, you must remain silent. The way to ensure protection of this right is to state:\n\u201cI am only willing to speak with you if I ...",
+          "filename": "e3510370-cb54-451a-a9d0-7fde5ceb78ee_Miranda_Rights.pdf",
+          "id": "5",
+          "jurisdiction": "state",
+          "score": 0.32704330680000004,
+          "section": "Unknown",
+          "source_number": 5,
+          "status": "current",
+          "title": "e3510370-cb54-451a-a9d0-7fde5ceb78ee_Miranda_Rights.pdf",
+          "type": "training_module",
+          "url": "http://localhost:5000/api/documents/download/e3510370-cb54-451a-a9d0-7fde5ceb78ee_Miranda_Rights.pdf"
+        }
+      ],
+      "metadata": {
+        "confidence_score": 0.67570167654,
+        "safety_warnings": {
+          "jurisdiction_warning": true,
+          "legal_disclaimer": false,
+          "low_confidence_warning": true,
+          "outdated_warning": false,
+          "use_of_force_warning": false
+        }
+      }
+    },
+    {
+      "question": "name a couple of more miranda rights",
+      "answer": "In addition to the core Miranda Rights previously mentioned, suspects also have the right:\n\n5. To have the police inform them of their rights before any questioning begins.\n6. To stop answering questions at any time and to request an attorney during questioning.",
+      "timestamp": "2025-08-13T23:04:06.338295",
+      "context": "Source 1 (Relevance: 0.63)\nDocument Type: training_module\nTitle: e3510370-cb54-451a-a9d0-7fde5ceb78ee_Miranda_Rights.pdf\nJurisdiction: federal\nStatus: current\nSection: Unknown\nContent: Miranda Rights\nAnyone who has watched a television show about law enforcement has a heard a police officer\nread the suspect his or her Miranda Rights. After placing the suspect under arrest, the offic...\nCitations: Miranda v. Arizona\n\nSource 2 (Relevance: 0.42)\nDocument Type: training_module\nTitle: 61617043-8138-4879-b321-6f16e3c18e51_36.pdf\nJurisdiction: unknown\nStatus: current\nSection: Unknown\nContent: The hearing shall be held not later than 20 days af-\n\nof the hearing.  The hearing shall be held not later than 20 days af-\nter the request for hearing except that this time limit may be ex-\ntended by...\n\nSource 3 (Relevance: 0.42)\nDocument Type: training_module\nTitle: ada74109-23dc-4317-94a6-6819510d4e4a_46.pdf\nJurisdiction: unknown\nStatus: current\nSection: Unknown\nContent: searcher, the information will not be released to a person not con-\nnected with the study under consideration, and the final product\nof the research will not reveal information that may serve to iden-...\n\nSource 4 (Relevance: 0.41)\nDocument Type: training_module\nTitle: 4e5be544-26e4-4632-b17e-136db2b0441d_23.pdf\nJurisdiction: unknown\nStatus: current\nSection: 23.66\nContent: (a)  The person refuses to accept a citation or to make a deposit\nunder s. 23.66; or\n(b)  The person refuses to identify himself or herself satisfac-\ntorily or the officer has reasonable grounds to be...\nCitations: 23.66, 23.58\n\nSource 5 (Relevance: 0.41)\nDocument Type: training_module\nTitle: 4e5be544-26e4-4632-b17e-136db2b0441d_23.pdf\nJurisdiction: state\nStatus: current\nSection: Unknown\nContent: A person arrested for a viola-\n\nDER INFLUENCE OF INTOXICANT.  A person arrested for a viola-\ntion of sub. (4c) (a) 1. or 2. or a local ordinance in conformity\ntherewith or sub. (4c) (b) 1. or 2. may n...\nCitations: 0.05\n",
+      "sources": [
+        {
+          "id": "1",
+          "title": "e3510370-cb54-451a-a9d0-7fde5ceb78ee_Miranda_Rights.pdf",
+          "type": "training_module",
+          "jurisdiction": "federal",
+          "status": "current",
+          "score": 0.6251380782285714,
+          "section": "Unknown",
+          "citations": [
+            "Miranda v. Arizona"
+          ],
+          "content_preview": "Miranda Rights\nAnyone who has watched a television show about law enforcement has a heard a police officer\nread the suspect his or her Miranda Rights. After placing the suspect under arrest, the offic...",
+          "url": "http://localhost:5000/api/documents/download/e3510370-cb54-451a-a9d0-7fde5ceb78ee_Miranda_Rights.pdf",
+          "source_number": 1,
+          "filename": "e3510370-cb54-451a-a9d0-7fde5ceb78ee_Miranda_Rights.pdf"
+        },
+        {
+          "id": "2",
+          "title": "61617043-8138-4879-b321-6f16e3c18e51_36.pdf",
+          "type": "training_module",
+          "jurisdiction": "unknown",
+          "status": "current",
+          "score": 0.42067754771428567,
+          "section": "Unknown",
+          "citations": [],
+          "content_preview": "The hearing shall be held not later than 20 days af-\n\nof the hearing.  The hearing shall be held not later than 20 days af-\nter the request for hearing except that this time limit may be ex-\ntended by...",
+          "url": "http://localhost:5000/api/documents/download/61617043-8138-4879-b321-6f16e3c18e51_36.pdf",
+          "source_number": 2,
+          "filename": "61617043-8138-4879-b321-6f16e3c18e51_36.pdf"
+        },
+        {
+          "id": "3",
+          "title": "ada74109-23dc-4317-94a6-6819510d4e4a_46.pdf",
+          "type": "training_module",
+          "jurisdiction": "unknown",
+          "status": "current",
+          "score": 0.4166799001142857,
+          "section": "Unknown",
+          "citations": [],
+          "content_preview": "searcher, the information will not be released to a person not con-\nnected with the study under consideration, and the final product\nof the research will not reveal information that may serve to iden-...",
+          "url": "http://localhost:5000/api/documents/download/ada74109-23dc-4317-94a6-6819510d4e4a_46.pdf",
+          "source_number": 3,
+          "filename": "ada74109-23dc-4317-94a6-6819510d4e4a_46.pdf"
+        },
+        {
+          "id": "4",
+          "title": "4e5be544-26e4-4632-b17e-136db2b0441d_23.pdf",
+          "type": "training_module",
+          "jurisdiction": "unknown",
+          "status": "current",
+          "score": 0.4134619049142857,
+          "section": "23.66",
+          "citations": [
+            "23.66",
+            "23.58"
+          ],
+          "content_preview": "(a)  The person refuses to accept a citation or to make a deposit\nunder s. 23.66; or\n(b)  The person refuses to identify himself or herself satisfac-\ntorily or the officer has reasonable grounds to be...",
+          "url": "http://localhost:5000/api/documents/download/4e5be544-26e4-4632-b17e-136db2b0441d_23.pdf",
+          "source_number": 4,
+          "filename": "4e5be544-26e4-4632-b17e-136db2b0441d_23.pdf"
+        },
+        {
+          "id": "5",
+          "title": "4e5be544-26e4-4632-b17e-136db2b0441d_23.pdf",
+          "type": "training_module",
+          "jurisdiction": "state",
+          "status": "current",
+          "score": 0.41120942131428573,
+          "section": "Unknown",
+          "citations": [
+            "0.05"
+          ],
+          "content_preview": "A person arrested for a viola-\n\nDER INFLUENCE OF INTOXICANT.  A person arrested for a viola-\ntion of sub. (4c) (a) 1. or 2. or a local ordinance in conformity\ntherewith or sub. (4c) (b) 1. or 2. may n...",
+          "url": "http://localhost:5000/api/documents/download/4e5be544-26e4-4632-b17e-136db2b0441d_23.pdf",
+          "source_number": 5,
+          "filename": "4e5be544-26e4-4632-b17e-136db2b0441d_23.pdf"
+        }
+      ],
+      "metadata": {
+        "confidence_score": 0.6188866974462858,
+        "safety_warnings": {
+          "use_of_force_warning": false,
+          "jurisdiction_warning": true,
+          "outdated_warning": false,
+          "low_confidence_warning": true,
+          "legal_disclaimer": false
+        }
+      }
+    }
+  ],
+  "total_exchanges": 3
+}

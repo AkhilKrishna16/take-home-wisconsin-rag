@@ -1,6 +1,7 @@
-import { FileText, BookOpen, Shield, Gavel, MapPin, Calendar, Hash, Download } from "lucide-react";
+import { FileText, BookOpen, Shield, Gavel, MapPin, Calendar, Hash, Download, Link } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { apiService } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 
@@ -17,6 +18,8 @@ export interface SourceCardProps {
   content_preview?: string;
   source_number?: number;
   filename?: string;
+  onCrossReference?: () => void;
+  showCrossReferenceButton?: boolean;
 }
 
 export const SourceCard = ({ 
@@ -29,7 +32,9 @@ export const SourceCard = ({
   section,
   content_preview,
   source_number,
-  filename
+  filename,
+  onCrossReference,
+  showCrossReferenceButton = true
 }: SourceCardProps) => {
   const { toast } = useToast();
 
@@ -215,9 +220,34 @@ export const SourceCard = ({
               Download
               <Download className="h-3 w-3" />
             </button>
+            {showCrossReferenceButton && onCrossReference && (
+              <button
+                onClick={onCrossReference}
+                className="inline-flex items-center gap-1 text-xs font-medium text-blue-600/80 transition-all hover:text-blue-600 hover:gap-1.5"
+                title="Find similar documents"
+              >
+                Cross-Ref
+                <Link className="h-3 w-3" />
+              </button>
+            )}
           </div>
         </div>
-      ) : null}
+      ) : (
+        showCrossReferenceButton && onCrossReference && (
+          <div className="flex items-center justify-between pt-2 border-t border-border/40">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={onCrossReference}
+                className="inline-flex items-center gap-1 text-xs font-medium text-blue-600/80 transition-all hover:text-blue-600 hover:gap-1.5"
+                title="Find similar documents"
+              >
+                Cross-Ref
+                <Link className="h-3 w-3" />
+              </button>
+            </div>
+          </div>
+        )
+      )}
     </article>
   );
 };

@@ -1,0 +1,124 @@
+{
+  "session_name": "Some Counties Wisconsin?",
+  "chat_name": "Some Counties Wisconsin?",
+  "created_at": "2025-08-13T23:22:51.991867",
+  "history": [
+    {
+      "question": "what are some counties in wisconsin?",
+      "answer": "In Wisconsin, some counties include:\n\n1. Adams County\n2. Dane County\n3. Milwaukee County\n4. Waukesha County\n5. Brown County\n\nThese are just a few examples of the counties in Wisconsin.",
+      "timestamp": "2025-08-13T23:22:51.991855",
+      "context": "Source 1 (Relevance: 0.58)\nDocument Type: training_module\nTitle: 8693f060-9fe9-458c-88d5-ffe2db98bbc3_59.pdf\nJurisdiction: state\nStatus: current\nSection: Unknown\nContent: boundaries  of  supervisory  districts,  so  that  the  number  of  dis-\ntricts equals the number of supervisors, the districts are substan-\n2023-24 Wisconsin Statutes updated through 2025 Wis. Act 16...\nCitations: 35.18, 59.10\n\nSource 2 (Relevance: 0.57)\nDocument Type: training_module\nTitle: ada74109-23dc-4317-94a6-6819510d4e4a_46.pdf\nJurisdiction: state\nStatus: current\nSection: 46.19\nContent: Officers and employees of county institutions.\n46.19\n46.20\nJoint county institutions.\n46.205  County home in adjoining county.\n46.206  Welfare services; supervisory functions of state department.\n46.2...\nCitations: 46.245, 46.19, 46.271, 46.272, 46.275, 46.205, 46.269, 46.20, 46.225, 46.234, 46.21, 46.23, 46.248, 46.215, 46.277, 46.238, 46.208, 46.22, 46.206\n\nSource 3 (Relevance: 0.57)\nDocument Type: general\nTitle: 2.pdf\nJurisdiction: state\nStatus: current\nSection: 2.01\nContent: 2.01  County  boundaries.. . The  state  is  divided  into  the \ncounties hereinafter named, and they are respectively bounded as \nfollows, to wit:\n\n(1)  ADAMS:  Beginning at the southeast corner of t...\nCitations: 2.01\n\nSource 4 (Relevance: 0.56)\nDocument Type: general\nTitle: 2.pdf\nJurisdiction: state\nStatus: current\nSection: Unknown\nContent: The  state  is  divided  into  the \ncounties hereinafter named, and they are respectively bounded as \nfollows, to wit:\n\n(1)  ADAMS:  Beginning at the southeast corner of township \n14,  of  range  7  e...\n\nSource 5 (Relevance: 0.53)\nDocument Type: general\nTitle: 1.pdf\nJurisdiction: state\nStatus: current\nSection: 1.025\nContent: 1.025  United  States  jurisdiction  in  Adams  County.. . The legislature consents to the conveyance by lease with option to \npurchase to the United States of the institution and the land on \nwhich i...\nCitations: 35.18, 1.025\n",
+      "sources": [
+        {
+          "id": "1",
+          "title": "8693f060-9fe9-458c-88d5-ffe2db98bbc3_59.pdf",
+          "type": "training_module",
+          "jurisdiction": "state",
+          "status": "current",
+          "score": 0.5755709172000001,
+          "section": "Unknown",
+          "citations": [
+            "35.18",
+            "59.10"
+          ],
+          "content_preview": "boundaries  of  supervisory  districts,  so  that  the  number  of  dis-\ntricts equals the number of supervisors, the districts are substan-\n2023-24 Wisconsin Statutes updated through 2025 Wis. Act 16...",
+          "url": "http://localhost:5001/api/documents/download/8693f060-9fe9-458c-88d5-ffe2db98bbc3_59.pdf",
+          "source_number": 1,
+          "filename": "8693f060-9fe9-458c-88d5-ffe2db98bbc3_59.pdf"
+        },
+        {
+          "id": "2",
+          "title": "ada74109-23dc-4317-94a6-6819510d4e4a_46.pdf",
+          "type": "training_module",
+          "jurisdiction": "state",
+          "status": "current",
+          "score": 0.565858078,
+          "section": "46.19",
+          "citations": [
+            "46.245",
+            "46.19",
+            "46.271",
+            "46.272",
+            "46.275",
+            "46.205",
+            "46.269",
+            "46.20",
+            "46.225",
+            "46.234",
+            "46.21",
+            "46.23",
+            "46.248",
+            "46.215",
+            "46.277",
+            "46.238",
+            "46.208",
+            "46.22",
+            "46.206"
+          ],
+          "content_preview": "Officers and employees of county institutions.\n46.19\n46.20\nJoint county institutions.\n46.205  County home in adjoining county.\n46.206  Welfare services; supervisory functions of state department.\n46.2...",
+          "url": "http://localhost:5001/api/documents/download/ada74109-23dc-4317-94a6-6819510d4e4a_46.pdf",
+          "source_number": 2,
+          "filename": "ada74109-23dc-4317-94a6-6819510d4e4a_46.pdf"
+        },
+        {
+          "id": "3",
+          "title": "2.pdf",
+          "type": "general",
+          "jurisdiction": "state",
+          "status": "current",
+          "score": 0.5657340240000001,
+          "section": "2.01",
+          "citations": [
+            "2.01"
+          ],
+          "content_preview": "2.01  County  boundaries.. . The  state  is  divided  into  the \ncounties hereinafter named, and they are respectively bounded as \nfollows, to wit:\n\n(1)  ADAMS:  Beginning at the southeast corner of t...",
+          "url": "http://localhost:5001/api/documents/download/2.pdf",
+          "source_number": 3,
+          "filename": "2.pdf"
+        },
+        {
+          "id": "4",
+          "title": "2.pdf",
+          "type": "general",
+          "jurisdiction": "state",
+          "status": "current",
+          "score": 0.5640708876,
+          "section": "Unknown",
+          "citations": [],
+          "content_preview": "The  state  is  divided  into  the \ncounties hereinafter named, and they are respectively bounded as \nfollows, to wit:\n\n(1)  ADAMS:  Beginning at the southeast corner of township \n14,  of  range  7  e...",
+          "url": "http://localhost:5001/api/documents/download/2.pdf",
+          "source_number": 4,
+          "filename": "2.pdf"
+        },
+        {
+          "id": "5",
+          "title": "1.pdf",
+          "type": "general",
+          "jurisdiction": "state",
+          "status": "current",
+          "score": 0.5338664292,
+          "section": "1.025",
+          "citations": [
+            "35.18",
+            "1.025"
+          ],
+          "content_preview": "1.025  United  States  jurisdiction  in  Adams  County.. . The legislature consents to the conveyance by lease with option to \npurchase to the United States of the institution and the land on \nwhich i...",
+          "url": "http://localhost:5001/api/documents/download/1.pdf",
+          "source_number": 5,
+          "filename": "1.pdf"
+        }
+      ],
+      "metadata": {
+        "confidence_score": 0.5698152080280001,
+        "safety_warnings": {
+          "use_of_force_warning": false,
+          "jurisdiction_warning": true,
+          "outdated_warning": false,
+          "low_confidence_warning": true,
+          "legal_disclaimer": false
+        }
+      }
+    }
+  ],
+  "total_exchanges": 1
+}
